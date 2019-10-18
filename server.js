@@ -3,8 +3,6 @@ const mongoose = require('mongoose');
 const session = require('express-session');
 const nodemailer = require('nodemailer');
 const db = require('./models');
-const httpProxy = require('http-proxy');
-const proxy = httpProxy.createServer({});
 const app = express();
 const PORT = process.env.PORT || 3001;
  
@@ -64,7 +62,7 @@ var transporter = nodemailer.createTransport({
          }
        })}
       else{
-        res.status(500).json({status:"ERROR"})
+        res.status(500).json({status:"ERROR", error:"NOT LOGGED IN"})
       }
     })
    });
@@ -75,7 +73,7 @@ var transporter = nodemailer.createTransport({
          res.status(200).json({status:"OK"});
        });
      else
-       res.status(500).json({status:"ERROR"});
+       res.status(500).json({status:"ERROR", error:"INCORRECT KEY"});
    });
    
    app.post("/login", (req, res) => {
@@ -89,7 +87,7 @@ var transporter = nodemailer.createTransport({
        }
        else{
          console.log("login failed");
-         res.status(500).json({status:"ERROR"})
+         res.status(500).json({status:"ERROR", error:"INCORRECT USERNAME OR PASSWORD"})
        }
      })
    });
@@ -115,7 +113,7 @@ app.post('/additem', (req, res)=>{
         
     }
     else
-    res.status(500).json({status:"ERROR"})  
+    res.status(500).json({status:"ERROR", error:"NOT LOGGED IN"})  
     
 });
 
@@ -123,14 +121,14 @@ app.get('/item/:id',(req, res)=>{
     if(req.session.userId){
        db.Tweet.find({id:req.params.id}).then((data)=>{
         if(data.length < 1)
-         res.json({status:"ERROR"});
+         res.json({status:"ERROR", error:"ITEM ID DOES NOT EXIST"});
          else
 					res.json({status:"OK", item:data[0]})
        });
         
     }
     else
-    res.status(500).json({status:"ERROR"}) 
+    res.status(500).json({status:"ERROR", error:"NOT LOGGED IN"}) 
 });
 
 app.post('/search', (req, res)=>{
@@ -143,7 +141,7 @@ app.post('/search', (req, res)=>{
         
     }
     else
-    res.status(500).json({status:"ERROR"}) 
+    res.status(500).json({status:"ERROR", error:"NOT LOGGED IN"}) 
 });
 
 // Start the API server
