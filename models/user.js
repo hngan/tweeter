@@ -5,10 +5,12 @@ const Schema =  mongoose.Schema;
 const UserSchema = new Schema({
     username:{
         type: String,
+        unique: true,
         required: true
     },
     email:{
         type: String,
+        unique: true,
         required: true
     },
     password:{
@@ -19,10 +21,7 @@ const UserSchema = new Schema({
         type: Boolean,
         default: false
     },
-    tweets:{
-        type: Array,
-        default: []
-    }
+    tweetss: [{ type: Schema.Types.ObjectId, ref: 'Tweet' }]
 });
 
 const User = mongoose.model("User", UserSchema);

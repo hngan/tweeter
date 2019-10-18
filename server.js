@@ -2,6 +2,9 @@ const express = require('express');
 const mongoose = require('mongoose');
 const session = require('express-session');
 const nodemailer = require('nodemailer');
+const db = require('./models');
+const httpProxy = require('http-proxy');
+const proxy = httpProxy.createServer({});
 const app = express();
 const PORT = process.env.PORT || 3001;
  
@@ -33,6 +36,8 @@ var transporter = nodemailer.createTransport({
   });
 
 
+
+
   app.post("/adduser", (req, res) => {
     db.User.find({username:req.body.username}, (err,resp) => {
       if(resp.length === 0){
@@ -55,11 +60,11 @@ var transporter = nodemailer.createTransport({
            res.status(200).json({status:"OK"});
          })}
          else{
-           res.status(200).json({status:"ERROR"})
+           res.status(500).json({status:"ERROR"})
          }
        })}
       else{
-        res.status(200).json({status:"ERROR"})
+        res.status(500).json({status:"ERROR"})
       }
     })
    });
@@ -70,21 +75,21 @@ var transporter = nodemailer.createTransport({
          res.status(200).json({status:"OK"});
        });
      else
-       res.status(200).json({status:"ERROR"});
+       res.status(500).json({status:"ERROR"});
    });
    
    app.post("/login", (req, res) => {
      var username = req.body.username;
      var password = req.body.password;
      db.User.find({username:username}, (err,resp) =>{
-       user = resp[0];
+       let user = resp[0];
        if(user.password === password && user.verified){
-         req.session.userId = user.username;
+         req.session.userId = user._id;
          res.status(200).json({status:"OK"})
        }
        else{
          console.log("login failed");
-         res.status(200).json({status:"ERROR"})
+         res.status(500).json({status:"ERROR"})
        }
      })
    });
@@ -92,22 +97,53 @@ var transporter = nodemailer.createTransport({
    app.post("/logout",(req, res) => {
      req.session.destroy(err =>{
        if(err){
-         res.json({status:"ERROR"});
+         res.status(500).json({status:"ERROR"});
        }
        res.json({status:"OK"});
      })
    });
 
 app.post('/additem', (req, res)=>{
-
+    if(req.session.userId){
+			req.body.author = req.session.userId;
+       db.Tweet.create(req.body).then((tweet) =>{
+           let id = tweet._id;
+           db.User.findOneAndUpdate({username:req.session.userId},{ $push: { tweets: id } }, { new: true }).then((resp)=>{
+               res.json({status:"OK", id:id});
+           })
+       })
+        
+    }
+    else
+    res.status(500).json({status:"ERROR"})  
+    
 });
 
 app.get('/item/:id',(req, res)=>{
-
+    if(req.session.userId){
+       db.Tweet.find({id:req.params.id}).then((data)=>{
+        if(data.length < 1)
+         res.json({status:"ERROR"});
+         else
+					res.json({status:"OK", item:data[0]})
+       });
+        
+    }
+    else
+    res.status(500).json({status:"ERROR"}) 
 });
 
 app.post('/search', (req, res)=>{
-
+    if(req.session.userId){
+			let limit = req.body.limit || 25;
+			let time = req.body.timestamp || Date.now();
+       db.Tweet.find({timestamp: {$lte: time}}).limit(limit).sort({timestamp: -1}).then((data)=>{
+					res.json({status:"OK", items:data[0]});
+			 });
+        
+    }
+    else
+    res.status(500).json({status:"ERROR"}) 
 });
 
 // Start the API server

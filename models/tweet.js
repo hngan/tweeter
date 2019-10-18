@@ -3,10 +3,7 @@ const mongoose = require('mongoose');
 const Schema =  mongoose.Schema;
 
 const TweetSchema = new Schema({
-    user:{
-        type: String,
-        required: true
-    },
+    author: { type: Schema.Types.ObjectId, ref: 'User' },
     content:{
         type:String,
         default: ""
@@ -23,7 +20,7 @@ const TweetSchema = new Schema({
     },
     timestamp:{
         type:Number,
-        default: Date.now();
+        default: Date.now()
     },
     childType:{
         type:String,
