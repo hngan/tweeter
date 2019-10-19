@@ -21,7 +21,7 @@ const UserSchema = new Schema({
         type: Boolean,
         default: false
     },
-    tweetss: [{ type: Schema.Types.ObjectId, ref: 'Tweet' }]
+    tweets: [{ type: Schema.Types.ObjectId, ref: 'Tweet' }]
 });
 
 const User = mongoose.model("User", UserSchema);

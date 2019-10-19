@@ -34,7 +34,9 @@ var transporter = nodemailer.createTransport({
   });
 
 
-
+app.get("/",(req, res)=>{
+  res.send("HELLO");
+})
 
   app.post("/adduser", (req, res) => {
     db.User.find({username:req.body.username}, (err,resp) => {
