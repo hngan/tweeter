@@ -4,7 +4,7 @@ const session = require('express-session');
 const nodemailer = require('nodemailer');
 const db = require('./models');
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3000;
  
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -60,11 +60,11 @@ app.get("/",(req, res)=>{
            res.status(200).json({status:"OK"});
          })}
          else{
-           res.status(500).json({status:"ERROR"})
+           res.status(500).json({status:"error"})
          }
        })}
       else{
-        res.status(500).json({status:"ERROR", error:"NOT LOGGED IN"})
+        res.status(500).json({status:"error", error:"NOT LOGGED IN"})
       }
     })
    });
@@ -75,29 +75,32 @@ app.get("/",(req, res)=>{
          res.status(200).json({status:"OK"});
        });
      else
-       res.status(500).json({status:"ERROR", error:"INCORRECT KEY"});
+       res.status(500).json({status:"error", error:"INCORRECT KEY"});
    });
    
    app.post("/login", (req, res) => {
      var username = req.body.username;
      var password = req.body.password;
      db.User.find({username:username}, (err,resp) =>{
+       if (resp.length === 0)
+      res.status(200).json({status:"error", error:"INCORRECT USERNAME OR PASSWORD"});
+      else{
        let user = resp[0];
        if(user.password === password && user.verified){
          req.session.userId = user._id;
+         req.session.username = user.username
          res.status(200).json({status:"OK"})
        }
        else{
-         console.log("login failed");
-         res.status(500).json({status:"ERROR", error:"INCORRECT USERNAME OR PASSWORD"})
-       }
+         res.status(200).json({status:"error", error:"INCORRECT USERNAME OR PASSWORD"})
+       }}
      })
    });
    
    app.post("/logout",(req, res) => {
      req.session.destroy(err =>{
        if(err){
-         res.status(500).json({status:"ERROR"});
+         res.status(500).json({status:"error"});
        }
        res.json({status:"OK"});
      })
@@ -105,45 +108,46 @@ app.get("/",(req, res)=>{
 
 app.post('/additem', (req, res)=>{
     if(req.session.userId){
-			req.body.author = req.session.userId;
+      req.body.author = req.session.userId;
+      console.log(req.session.username);
+      req.body.username = req.session.username;
+      if(req.body.content){
        db.Tweet.create(req.body).then((tweet) =>{
            let id = tweet._id;
            db.User.findOneAndUpdate({username:req.session.userId},{ $push: { tweets: id } }, { new: true }).then((resp)=>{
                res.json({status:"OK", id:id});
            })
        })
-        
+      }
+      else
+      res.status(500).json({status:"error", error:"NO CONTENT"})
     }
     else
-    res.status(500).json({status:"ERROR", error:"NOT LOGGED IN"})  
+    res.status(500).json({status:"error", error:"NOT LOGGED IN"})  
     
 });
 
 app.get('/item/:id',(req, res)=>{
-    if(req.session.userId){
-       db.Tweet.find({id:req.params.id}).then((data)=>{
-        if(data.length < 1)
-         res.json({status:"ERROR", error:"ITEM ID DOES NOT EXIST"});
-         else
-					res.json({status:"OK", item:data[0]})
-       });
-        
-    }
-    else
-    res.status(500).json({status:"ERROR", error:"NOT LOGGED IN"}) 
+  console.log(req.params.id)
+       db.Tweet.findById(req.params.id).then((data)=>{
+         console.log(data);
+         data.id = data._id;
+					res.status(200).json({status:"OK", item:data})
+          }).catch((err)=>{
+            res.status(500).json({status:"error", error:err})  
+          })
 });
 
 app.post('/search', (req, res)=>{
-    if(req.session.userId){
 			let limit = req.body.limit || 25;
-			let time = req.body.timestamp || Date.now();
+			let time = req.body.timestamp || Date.now()/1000;
        db.Tweet.find({timestamp: {$lte: time}}).limit(limit).sort({timestamp: -1}).then((data)=>{
-					res.json({status:"OK", items:data[0]});
+         if(data){
+         for(let i = 0; i< data.length; i++){
+         data[i].id = data[i]._id
+      }
+					res.json({status:"OK", items:data});}
 			 });
-        
-    }
-    else
-    res.status(500).json({status:"ERROR", error:"NOT LOGGED IN"}) 
 });
 
 // Start the API server
