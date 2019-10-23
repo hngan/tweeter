@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Milestone 1</title>
+	<!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+</head>
+<body>
+    <nav class="navbar navbar-light bg-light fixed-top">
+  <a class="navbar-brand">Temp Navbar For Now</a>
+  <form class="form-inline">
+    <button class="btn btn-outline-success my-2 my-sm-0" id ="logoutbtn">Logout</button>
+  </form>
+    </nav>
+    <br>
+    <br>
+    <br>
+    <div class="card" style = "width: 40%; float: left; margin-left: 5%; margin-right:10%">
+        <h5 class="card-header">Tweet Something!</h5>
+        <div class="card-body">
+            <h5 class="card-title">Content</h5>
+            <textarea id="content" cols="60" rows="12" placeholder="You can tweet anything!"></textarea>
+          <a class="btn btn-primary" id="contentSubmit" style="color: white;">Submit Tweet!</a>
+        </div>
+      </div>
+      <div class="card" style = "width: 40%">
+        <h5 class="card-header">Get Tweet JSON with id!</h5>
+        <div class="card-body">
+          <label for="tweetId"><h5 class="card-title">ID:</h5></label>
+         <input type="text" id="tweetId">
+          <a class="btn btn-primary" style="color: white;" id="getitem">Submit</a>
+        </div>
+      </div>
+      <br>
+      <div class="card" style = "width: 40%">
+            <h5 class="card-header">Search:</h5>
+            <div class="card-body">
+              <h5 class="card-title">Get Results Prior To:</h5>
+              <input type="number" placeholder="In Unix Time" style="margin-bottom: 15px;" id="sTimestamp">
+              <h5 class="card-title">Limit:</h5>
+              <input type="number" placeholder="number of max results" id="sLimit">
+              <br>
+              <br>
+              <a class="btn btn-primary" style="color: white;" id="searchBtn">Search</a>
+            </div>
+          </div>
+          <br>
+ <div class="card" style="clear:left; margin-top:3%; width: 90%; position: relative; left: 5%;">
+    <h5 class="card-header">Search Results:</h5>
+          <div class="card-body" id="searchBody">
+        </div>
+</div>
+    
+        <script>
+            $(document).ready(function(){
+                $("#logoutbtn").on("click",(event)=>{
+                    $.post('/logout').then((resp)=>{
+                        window.location.assign("/");
+                    });
+                });
+                $("#contentSubmit").on("click",(event)=>{
+                    let content =  $("#content").val();
+                    let item = {
+                       content:content
+                    }
+                    $.post('/additem', item).then((resp)=>{
+                        console.log(resp);
+                    });
+                });
+                $("#getitem").on("click",(event)=>{
+                    let id = $("#tweetId").val().trim();
+                    window.location.assign("/item/"+id);
+                });
+                $("#searchBtn").on("click",(event)=>{
+                    let timestamp = $("#sTimestamp").val();
+                    let limit = $("#sLimit").val();
+                    let search = {
+                        timestamp: timestamp,
+                        limit: limit
+                    };
+                    $('#searchBody').empty();
+                    $.post("/search", search).then((resp)=>{
+                        let results = resp.items;
+                        results.forEach(element => {
+                            $("#searchBody").append(` <h5 class="card-title">${element.username}</h5>
+                            <p>${element.content}</p>
+                            `)
+                        });
+                    });
+                });
+            })
+        </script>
+</body>
+</html>

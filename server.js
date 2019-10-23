@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const session = require('express-session');
 const nodemailer = require('nodemailer');
+const path = require('path');
 const db = require('./models');
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -35,7 +36,7 @@ var transporter = nodemailer.createTransport({
 
 
 app.get("/",(req, res)=>{
-  res.send("HELLO");
+  res.sendFile(path.join(__dirname,"index.html"));
 })
 
   app.post("/adduser", (req, res) => {
@@ -68,7 +69,7 @@ app.get("/",(req, res)=>{
          }
        })
       });
-      
+
       app.post("/verify", (req, res) => {
         if(req.body.key === "abracadabra")
           db.User.updateOne({email:req.body.email}, {verified:true}).then(()=>{
@@ -106,10 +107,15 @@ app.get("/",(req, res)=>{
       })
     });
  
+  app.get("/home", (req, res)=>{
+    if(req.session.userId)
+    res.sendFile(path.join(__dirname,"home.html"));
+    else
+    res.sendFile(path.join(__dirname,"error.html"));
+  });
  app.post('/additem', (req, res)=>{
      if(req.session.userId){
        req.body.author = req.session.userId;
-       console.log(req.session.username);
        req.body.username = req.session.username;
        if(req.body.content){
         db.Tweet.create(req.body).then((tweet) =>{
@@ -139,8 +145,8 @@ app.get("/",(req, res)=>{
  });
  
  app.post('/search', (req, res)=>{
-    let limit = req.body.limit || 25;
-    let time = req.body.timestamp || Date.now()/1000;
+    let limit = req.body.limit ? parseInt(req.body.limit) : 25;
+    let time = req.body.timestamp ? parseInt(req.body.timestamp) : Date.now()/1000;
     db.Tweet.find({timestamp: {$lte: time}}).limit(limit).sort({timestamp: -1}).then((data)=>{
       if(data){
         for(let i = 0; i< data.length; i++){
