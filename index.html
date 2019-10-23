@@ -54,8 +54,16 @@
               </div>
           </div>
         </div>
+        <br>
+        <br>
+        <div class = "row">
+                <div class="col-sm-12 text-center">
+            <button id ="search">Search Stuff</button>
         </div>
-       
+        </div>
+     
+        </div>
+        
         <script>
             $(document).ready(() =>{
                 $("#ssubmit").on("click",(event) =>{
@@ -92,6 +100,10 @@
                           window.location.assign("/home");
                     });
                 });
+
+                $("#search").on("click",event=>{
+                    window.location.assign("/home");
+                })
             })
         </script>
 </body>
