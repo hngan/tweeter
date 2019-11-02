@@ -148,7 +148,7 @@ app.get("/",(req, res)=>{
     let time = req.body.timestamp ? parseInt(req.body.timestamp) : Date.now()/1000;
     let query ={timestamp: {$lte: time}}
     if(req.body.q != "" && req.body.q != undefined)
-      query.content = req.body.q;
+      query.content = { "$regex": req.body.q, "$options": "i" }
     if(req.body.username)
       query.username = req.body.username;
     if(req.body.following === false || req.body.following ==="false"){
