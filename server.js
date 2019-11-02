@@ -147,31 +147,31 @@ app.get("/",(req, res)=>{
     let limit = req.body.limit ? parseInt(req.body.limit) : 25;
     let time = req.body.timestamp ? parseInt(req.body.timestamp) : Date.now()/1000;
     let query ={timestamp: {$lte: time}}
-    if(req.body.q)
+    if(req.body.q != "")
       query.content = req.body.q;
     if(req.body.username)
       query.username = req.body.username;
     if(req.body.following === false){
-      db.User.find({_id:req.session.userId}).then((data)=>{
-        query.author = {$in: data[0].following}
-        db.Tweet.find(query).limit(limit).sort({timestamp: -1}).then((data)=>{
-          if(data){
-            for(let i = 0; i< data.length; i++){
-              data[i].id = data[i]._id
-              }
-            res.json({status:"OK", items:data});}
-              });
-      })
+      db.Tweet.find(query).limit(limit).sort({timestamp: -1}).then((data)=>{
+        if(data){
+          for(let i = 0; i< data.length; i++){
+            data[i].id = data[i]._id
+            }
+          res.json({status:"OK", items:data});}
+            });
     }
     else
-    db.Tweet.find(query).limit(limit).sort({timestamp: -1}).then((data)=>{
-      if(data){
-        for(let i = 0; i< data.length; i++){
-          data[i].id = data[i]._id
-          }
-        res.json({status:"OK", items:data});}
-          });
-     });
+    db.User.find({_id:req.session.userId}).where('username').ne(req.session.username).then((data)=>{
+      query.author = {$in: data[0].following}
+      db.Tweet.find(query).limit(limit).sort({timestamp: -1}).then((data)=>{
+        if(data){
+          for(let i = 0; i< data.length; i++){
+            data[i].id = data[i]._id
+            }
+          res.json({status:"OK", items:data});}
+            });
+    })
+    });
 
 //MILESTONE 2 STUFF
 app.delete('/item/:id', (req, res)=>{
