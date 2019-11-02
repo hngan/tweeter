@@ -147,11 +147,11 @@ app.get("/",(req, res)=>{
     let limit = req.body.limit ? parseInt(req.body.limit) : 25;
     let time = req.body.timestamp ? parseInt(req.body.timestamp) : Date.now()/1000;
     let query ={timestamp: {$lte: time}}
-    if(req.body.q != "")
+    if(req.body.q != "" && req.body.q != undefined)
       query.content = req.body.q;
     if(req.body.username)
       query.username = req.body.username;
-    if(req.body.following === false){
+    if(req.body.following === false || req.body.following ==="false"){
       db.Tweet.find(query).limit(limit).sort({timestamp: -1}).then((data)=>{
         if(data){
           for(let i = 0; i< data.length; i++){
@@ -161,9 +161,11 @@ app.get("/",(req, res)=>{
             });
     }
     else
-    db.User.find({_id:req.session.userId}).where('username').ne(req.session.username).then((data)=>{
+    db.User.find({_id:req.session.userId}).then((data)=>{
+      if(data[0])
       query.author = {$in: data[0].following}
-      db.Tweet.find(query).limit(limit).sort({timestamp: -1}).then((data)=>{
+      console.log(query);
+      db.Tweet.find(query).where('username').ne(req.session.username).limit(limit).sort({timestamp: -1}).then((data)=>{
         if(data){
           for(let i = 0; i< data.length; i++){
             data[i].id = data[i]._id
