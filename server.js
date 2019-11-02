@@ -177,7 +177,7 @@ app.get("/",(req, res)=>{
 
 //MILESTONE 2 STUFF
 app.delete('/item/:id', (req, res)=>{
-  if(req.sessions.userId)
+  if(req.session.userId)
   db.Tweet.deleteOne({_id:req.params.id, username:req.session.username}, (err)=>{
     if(err)
       res.status(500).json({status:"error"});
@@ -248,7 +248,7 @@ app.get('/user/:username/following', (req, res)=>{
 });
 
 app.post('/follow', (req, res)=>{
-if(req.sessions.userId){
+if(req.session.userId){
   if(req.body.username){
   let follow = req.body.follow || true
   if(follow){
@@ -258,7 +258,7 @@ if(req.sessions.userId){
         if(user.followers.includes(req.session.userId))
           res.status(500).json({status:"error"});
         else
-        db.User.findOneAndUpdate({username:req.session.username},{ $push: {followers: req.sessions.userId} }).then((resp)=>{
+        db.User.findOneAndUpdate({username:req.session.username},{ $push: {followers: req.session.userId} }).then((resp)=>{
           res.status(200).json({status:"OK"});
         })
       }
@@ -271,7 +271,7 @@ if(req.sessions.userId){
       if(data.length > 0 ){
         let user = data [0];
         if(user.followers.includes(req.session.userId)){
-          db.User.findOneAndUpdate({username:req.session.username},{ $pull: {followers: req.sessions.userId} }).then((resp)=>{
+          db.User.findOneAndUpdate({username:req.session.username},{ $pull: {followers: req.session.userId} }).then((resp)=>{
             res.status(200).json({status:"OK"});
           })
         }   
