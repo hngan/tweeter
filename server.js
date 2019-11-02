@@ -34,7 +34,6 @@ var transporter = nodemailer.createTransport({
     }
   });
 
-
 app.get("/",(req, res)=>{
   res.sendFile(path.join(__dirname,"index.html"));
 })
@@ -147,8 +146,9 @@ app.get("/",(req, res)=>{
     let limit = req.body.limit ? parseInt(req.body.limit) : 25;
     let time = req.body.timestamp ? parseInt(req.body.timestamp) : Date.now()/1000;
     let query ={timestamp: {$lte: time}}
+    console.log(req.body.q);
     if(req.body.q != "" && req.body.q != undefined)
-      query.content = { "$regex": req.body.q, "$options": "i" }
+      query.content = { "$regex": req.body.q.split(" ").join("|"), "$options": "i" }
     if(req.body.username)
       query.username = req.body.username;
     if(req.body.following === false || req.body.following ==="false"){
