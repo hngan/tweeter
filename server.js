@@ -120,8 +120,8 @@ app.get("/",(req, res)=>{
        if(req.body.content){
         db.Tweet.create(req.body).then((tweet) =>{
             let id = tweet._id;
-            db.User.findOneAndUpdate({username:req.session.userId},{ $push: { tweets: id } }, { new: true }).then((resp)=>{
-              res.json({status:"OK", id:id});
+            db.User.findOneAndUpdate({username:req.session.username},{ $push: {tweets: id} }, { new: true }).then((resp)=>{
+              res.status(200).json({status:"OK", id:id});
             })
         })
        }
@@ -134,20 +134,37 @@ app.get("/",(req, res)=>{
  });
  
  app.get('/item/:id',(req, res)=>{
-   console.log(req.params.id)
-        db.Tweet.findById(req.params.id).then((data)=>{
-          console.log(data);
-          data.id = data._id;
-          res.status(200).json({status:"OK", item:data})
-           }).catch((err)=>{
-             res.status(500).json({status:"error", error:err})  
-           })
+    db.Tweet.findById(req.params.id).then((data)=>{
+      console.log(data);
+      data.id = data._id;
+      res.status(200).json({status:"OK", item:data})
+        }).catch((err)=>{
+          res.status(500).json({status:"error", error:err})  
+        })
  });
  
  app.post('/search', (req, res)=>{
     let limit = req.body.limit ? parseInt(req.body.limit) : 25;
     let time = req.body.timestamp ? parseInt(req.body.timestamp) : Date.now()/1000;
-    db.Tweet.find({timestamp: {$lte: time}}).limit(limit).sort({timestamp: -1}).then((data)=>{
+    let query ={timestamp: {$lte: time}}
+    if(req.body.q)
+      query.content = req.body.q;
+    if(req.body.username)
+      query.username = req.body.username;
+    if(req.body.following === false){
+      db.User.find({_id:req.session.Id}).then((data)=>{
+        query.author = {$in: data[0].following}
+        db.Tweet.find(query).limit(limit).sort({timestamp: -1}).then((data)=>{
+          if(data){
+            for(let i = 0; i< data.length; i++){
+              data[i].id = data[i]._id
+              }
+            res.json({status:"OK", items:data});}
+              });
+      })
+    }
+    else
+    db.Tweet.find(query).limit(limit).sort({timestamp: -1}).then((data)=>{
       if(data){
         for(let i = 0; i< data.length; i++){
           data[i].id = data[i]._id
@@ -155,9 +172,121 @@ app.get("/",(req, res)=>{
         res.json({status:"OK", items:data});}
           });
      });
-     
-     // Start the API server
-     app.listen(PORT, function() {
-       console.log(`API Server now listening on PORT ${PORT}!`);
-     });
-     
+
+//MILESTONE 2 STUFF
+app.delete('/item/:id', (req, res)=>{
+  if(req.session.id)
+  db.Tweet.deleteOne({_id:req.params.id, username:req.session.username}, (err)=>{
+    if(err)
+      res.status(500).json({status:"error"});
+    else{
+      db.User.findOneAndUpdate({username:req.session.username},{ $pull: {tweets: req.params.id} }).then((resp)=>{
+        res.status(200).json({status:"OK"});
+      })
+      res.status(200).json({status:"OK"});
+    }    
+  });
+  else
+    res.status(500).json({status:"error"});
+});
+
+app.get('/user/:username', (req, res)=>{
+  db.User.find({username:req.params.username}).then(data=>{
+    if(data.length === 0)
+      res.status(500).json({status:"error"})
+    else{
+      let user = data[0];
+      res.status(200).json({status:"OK", user:{email:user.email, followers:user.followers.length, following:user.following.length}})
+    }
+  })
+});
+
+app.get('/user/:username/posts', (req, res)=>{
+  let limit = parseInt(req.body.limit) || 50
+  limit = limit > 200 ? 200 : limit
+db.User.find({username:req.params.username}).then((data)=>{
+  if(data.length > 0){
+    let user = data[0]
+    let tweets = user.tweets.slice(0, limit + 1);
+    res.status(200).json({status:"OK", items:tweets});
+  }
+  else
+    res.status(500).json({status:"error"})
+})
+});
+
+app.get('/user/:username/followers', (req, res)=>{
+  let limit = parseInt(req.body.limit) || 50
+  limit = limit > 200 ? 200 : limit
+  db.User.find({username:req.params.username}).populate({path:'followers',  options: {
+    limit: limit}}).then((data)=>{
+    if(data.length > 0){
+      let followers = [];
+      data[0].followers.forEach(follower => {
+        followers.push(follower.username)
+      });
+      res.status(200).json({status:"OK", users:followers})
+    }
+  });
+});
+
+app.get('/user/:username/following', (req, res)=>{
+  let limit = parseInt(req.body.limit) || 50
+  limit = limit > 200 ? 200 : limit
+  db.User.find({username:req.params.username}).populate({path:'following',  options: {
+    limit: limit}}).then((data)=>{
+    if(data.length > 0){
+      let following = [];
+      data[0].following.forEach(following => {
+        followers.push(following.username)
+      });
+      res.status(200).json({status:"OK", users:following})
+    }
+  });
+});
+
+app.post('/follow', (req, res)=>{
+if(req.session.id){
+  if(req.body.username){
+  let follow = req.body.follow || true
+  if(follow){
+    db.User.find({username: req.body.username}).then(data=>{
+      if(data.length > 0 ){
+        let user = data [0];
+        if(user.followers.includes(req.sessions.id))
+          res.status(500).json({status:"error"});
+        else
+        db.User.findOneAndUpdate({username:req.session.username},{ $push: {followers: req.session.id} }).then((resp)=>{
+          res.status(200).json({status:"OK"});
+        })
+      }
+      else
+        res.status(500).json({status:"error"});
+    })
+  }
+  else{
+    db.User.find({username: req.body.username}).then(data=>{
+      if(data.length > 0 ){
+        let user = data [0];
+        if(user.followers.includes(req.sessions.id)){
+          db.User.findOneAndUpdate({username:req.session.username},{ $pull: {followers: req.session.id} }).then((resp)=>{
+            res.status(200).json({status:"OK"});
+          })
+        }   
+        else
+          res.status(500).json({status:"error"});
+      }
+      else
+        res.status(500).json({status:"error"});
+    })
+  }
+  }
+}
+else
+res.status(500).json({status:"error"})
+});
+
+// Start the API server
+app.listen(PORT, function() {
+  console.log(`API Server now listening on PORT ${PORT}!`);
+});

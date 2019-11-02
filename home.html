@@ -20,7 +20,8 @@
         <h5 class="card-header">Tweet Something!</h5>
         <div class="card-body">
             <h5 class="card-title">Content</h5>
-            <textarea id="content" cols="60" rows="12" placeholder="You can tweet anything!"></textarea>
+            <textarea id="content" cols="65" rows="8" placeholder="You can tweet anything!"></textarea>
+            <h5 class="card-title">Returned ID:<span id="itemId"></span></h5>
           <a class="btn btn-primary" id="contentSubmit" style="color: white;">Submit Tweet!</a>
         </div>
       </div>
@@ -65,7 +66,7 @@
                        content:content
                     }
                     $.post('/additem', item).then((resp)=>{
-                        console.log(resp);
+                        $("#itemId").text(resp.id);
                     });
                 });
                 $("#getitem").on("click",(event)=>{
