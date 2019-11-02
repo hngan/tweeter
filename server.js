@@ -152,7 +152,7 @@ app.get("/",(req, res)=>{
     if(req.body.username)
       query.username = req.body.username;
     if(req.body.following === false){
-      db.User.find({_id:req.session.Id}).then((data)=>{
+      db.User.find({_id:req.session.userId}).then((data)=>{
         query.author = {$in: data[0].following}
         db.Tweet.find(query).limit(limit).sort({timestamp: -1}).then((data)=>{
           if(data){
