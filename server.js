@@ -209,7 +209,7 @@ app.get('/user/:username/posts', (req, res)=>{
 db.User.find({username:req.params.username}).then((data)=>{
   if(data.length > 0){
     let user = data[0]
-    let tweets = user.tweets.slice(0, limit + 1);
+    let tweets = user.tweets.slice(0, limit);
     res.status(200).json({status:"OK", items:tweets});
   }
   else
