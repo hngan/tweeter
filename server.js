@@ -257,10 +257,13 @@ if(req.session.userId){
         let user = data [0];
         if(user.followers.includes(req.session.userId))
           res.status(500).json({status:"error"});
-        else
-        db.User.findOneAndUpdate({username:req.session.username},{ $push: {followers: req.session.userId} }).then((resp)=>{
-          res.status(200).json({status:"OK"});
+        else{
+        db.User.findOneAndUpdate({username:req.body.username},{ $push: {followers: req.session.userId} }).then((resp)=>{
+          db.User.findOneAndUpdate({username: req.session.username},{ $push: {following: user._id} }).then((resp)=>{
+            res.status(200).json({status:"OK"});
+          })        
         })
+      }
       }
       else
         res.status(500).json({status:"error"});
@@ -271,8 +274,10 @@ if(req.session.userId){
       if(data.length > 0 ){
         let user = data [0];
         if(user.followers.includes(req.session.userId)){
-          db.User.findOneAndUpdate({username:req.session.username},{ $pull: {followers: req.session.userId} }).then((resp)=>{
-            res.status(200).json({status:"OK"});
+          db.User.findOneAndUpdate({username:req.session.username},{ $pull: {following: user._id} }).then((resp)=>{
+            db.User.findOneAndUpdate({username:user.username},{$pull:{followers:req.session.userId}}).then((resp)=>{
+              res.status(200).json({status:"OK"});
+            })
           })
         }   
         else
