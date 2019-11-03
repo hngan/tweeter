@@ -134,7 +134,6 @@ app.get("/",(req, res)=>{
  
  app.get('/item/:id',(req, res)=>{
     db.Tweet.findById(req.params.id).then((data)=>{
-      console.log(data);
       data.id = data._id;
       res.status(200).json({status:"OK", item:data})
         }).catch((err)=>{
@@ -146,7 +145,6 @@ app.get("/",(req, res)=>{
     let limit = req.body.limit ? parseInt(req.body.limit) : 25;
     let time = req.body.timestamp ? parseInt(req.body.timestamp) : Date.now()/1000;
     let query ={timestamp: {$lte: time}}
-    console.log(req.body.q);
     if(req.body.q != "" && req.body.q != undefined)
       query.content = { "$regex": req.body.q.split(" ").join("|"), "$options": "i" }
     if(req.body.username)
@@ -164,7 +162,6 @@ app.get("/",(req, res)=>{
     db.User.find({_id:req.session.userId}).then((data)=>{
       if(data[0])
       query.author = {$in: data[0].following}
-      console.log(query);
       db.Tweet.find(query).where('username').ne(req.session.username).limit(limit).sort({timestamp: -1}).then((data)=>{
         if(data){
           for(let i = 0; i< data.length; i++){
@@ -180,10 +177,8 @@ app.delete('/item/:id', (req, res)=>{
   if(req.session.userId)
   db.Tweet.find({_id: req.params.id}).then((data)=>{
     if(req.session.username !== data[0].username){
-      console.log("NEVER GOT DELETED")
       res.status(500).json({status:"error"});}
       else{
-        console.log(req.session.username, data)
         db.Tweet.deleteOne({_id:req.params.id}, (err)=>{
           if(err)
             res.status(500).json({status:"error"});
@@ -279,7 +274,6 @@ if(req.session.userId && req.body.username && req.body.username !== req.session.
   }
   //unfollow
   else{
-    console.log("UNFOLLOW");
     db.User.find({username: req.body.username}).then(data=>{
       if(data.length > 0 ){
         let user = data [0];
