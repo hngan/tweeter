@@ -179,9 +179,11 @@ app.get("/",(req, res)=>{
 app.delete('/item/:id', (req, res)=>{
   if(req.session.userId)
   db.Tweet.find({_id: req.params.id}).then((data)=>{
-    if(req.session.username === data[0].username)
-      res.status(500).json({status:"error"});
+    if(req.session.username !== data[0].username){
+      console.log("NEVER GOT DELETED")
+      res.status(500).json({status:"error"});}
       else{
+        console.log(req.session.username, data)
         db.Tweet.deleteOne({_id:req.params.id}, (err)=>{
           if(err)
             res.status(500).json({status:"error"});
@@ -189,7 +191,6 @@ app.delete('/item/:id', (req, res)=>{
             db.User.findOneAndUpdate({username:req.session.username},{ $pull: {tweets: req.params.id} }).then((resp)=>{
               res.status(200).json({status:"OK"});
             })
-            res.status(200).json({status:"OK"});
           }    
         });
       }
