@@ -296,6 +296,13 @@ else
 res.status(500).json({status:"error"})
 });
 
+app.get("/user",(req, res)=>{
+  if(req.session.userId)
+  res.sendFile(path.join(__dirname,"users.html"));
+  else
+  res.sendFile(path.join(__dirname,"nusers.html"));
+})
+
 // Start the API server
 app.listen(PORT, function() {
   console.log(`API Server now listening on PORT ${PORT}!`);
