@@ -256,7 +256,7 @@ if(req.session.userId){
       if(data.length > 0 ){
         let user = data [0];
         if(user.followers.includes(req.session.userId))
-          res.status(500).json({status:"error"});
+          res.status(200).json({status:"OK"});
         else{
         db.User.findOneAndUpdate({username:req.body.username},{ $push: {followers: req.session.userId} }).then((resp)=>{
           db.User.findOneAndUpdate({username: req.session.username},{ $push: {following: user._id} }).then((resp)=>{
@@ -281,7 +281,7 @@ if(req.session.userId){
           })
         }   
         else
-          res.status(500).json({status:"error"});
+          res.status(200).json({status:"OK"});
       }
       else
         res.status(500).json({status:"error"});
