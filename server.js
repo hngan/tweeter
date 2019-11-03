@@ -178,16 +178,22 @@ app.get("/",(req, res)=>{
 //MILESTONE 2 STUFF
 app.delete('/item/:id', (req, res)=>{
   if(req.session.userId)
-  db.Tweet.deleteOne({_id:req.params.id, username:req.session.username}, (err)=>{
-    if(err)
+  db.Tweet.find({_id: req.params.id}).then((data)=>{
+    if(req.session.username === data[0].username)
       res.status(500).json({status:"error"});
-    else{
-      db.User.findOneAndUpdate({username:req.session.username},{ $pull: {tweets: req.params.id} }).then((resp)=>{
-        res.status(200).json({status:"OK"});
-      })
-      res.status(200).json({status:"OK"});
-    }    
-  });
+      else{
+        db.Tweet.deleteOne({_id:req.params.id}, (err)=>{
+          if(err)
+            res.status(500).json({status:"error"});
+          else{
+            db.User.findOneAndUpdate({username:req.session.username},{ $pull: {tweets: req.params.id} }).then((resp)=>{
+              res.status(200).json({status:"OK"});
+            })
+            res.status(200).json({status:"OK"});
+          }    
+        });
+      }
+  }) 
   else
     res.status(500).json({status:"error"});
 });
