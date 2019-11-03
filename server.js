@@ -238,19 +238,20 @@ app.get('/user/:username/following', (req, res)=>{
   db.User.find({username:req.params.username}).populate({path:'following',  options: {
     limit: limit}}).then((data)=>{
     if(data.length > 0){
-      let following = [];
+      let followings = [];
       data[0].following.forEach(following => {
-        followers.push(following.username)
+        followings.push(following.username)
       });
-      res.status(200).json({status:"OK", users:following})
+      res.status(200).json({status:"OK", users:followings})
     }
   });
 });
 
 app.post('/follow', (req, res)=>{
-if(req.session.userId){
-  if(req.body.username){
-  let follow = req.body.follow || true
+if(req.session.userId && req.body.username && req.body.username !== req.session.username){
+  let follow = true
+  if(req.body.follow === false || req.body.follow === "false")
+    follow = false
   if(follow){
     db.User.find({username: req.body.username}).then(data=>{
       if(data.length > 0 ){
@@ -269,7 +270,9 @@ if(req.session.userId){
         res.status(500).json({status:"error"});
     })
   }
+  //unfollow
   else{
+    console.log("UNFOLLOW");
     db.User.find({username: req.body.username}).then(data=>{
       if(data.length > 0 ){
         let user = data [0];
@@ -286,7 +289,6 @@ if(req.session.userId){
       else
         res.status(500).json({status:"error"});
     })
-  }
   }
 }
 else
