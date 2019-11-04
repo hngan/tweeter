@@ -13,7 +13,7 @@
     <label for="follower">Follow or Unfollow:</label>
     <input type="text" placeholder="User to follow/unfollow" id="follower">
     <br>
-     <button id="follow">Follow</button> <button id="follow">unfollow</button>
+     <button id="follow">Follow</button> <button id="unfollow">Unfollow</button>
     </form>
 
     <br>
@@ -57,6 +57,7 @@
         });
 
         $("#buser").on("click",(event)=>{
+            console.log("meow");
             event.preventDefault()
             window.location.assign("/user/"+$("#user").val()+"/")
         });
@@ -64,7 +65,29 @@
         $("#bupost").on("click",(event)=>{
             event.preventDefault()
             window.location.assign("/user/"+$("#upost").val()+"/posts")
-        })
+        });
+
+        $("#follow").on("click",(event)=>{
+            event.preventDefault();
+            
+            if($("#follower").val()!==""){
+                let follow = {
+                    username: $("#follower").val(),
+                }
+                $.post("/follow", follow);
+            }
+        });
+
+        $("#unfollow").on("click",(event)=>{
+            event.preventDefault();
+            if($("#follower").val()!==""){
+                let follow = {
+                    username: $("#follower").val(),
+                    follow: false
+                }
+                $.post("/follow", follow);
+            }
+        });
     });
 </script>
 </body>

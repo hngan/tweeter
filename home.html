@@ -46,12 +46,12 @@
       </div>
       <br>
       <div class="card" style = "width: 40%; float: left; margin-left: 5%; margin-right:10%">
-        <h5 class="card-header">Tweet Something!</h5>
+        <h5 class="card-header">Delete Tweet!</h5>
         <div class="card-body">
             <h5 class="card-title">Tweet Id to delete:</h5>
             <input type="text" placeholder="Your tweet id to delete" id="deleteId">
             <h5 class="card-title">Status:<span id="deleteStatus"></span></h5>
-          <a class="btn btn-primary" id="contentSubmit" style="color: white;">Submit!</a>
+          <a class="btn btn-primary" id="deleteSubmit" style="color: white;">Submit!</a>
         </div>
       </div>
       <div class="card" style = "width: 40%">
@@ -68,7 +68,7 @@
               <input type="text" placeholder="Username" id="susername">
               <br>
               <h5 class="card-title">following:</h5>
-              <input type="checkbox" id="sfollowing" checked>
+              <input type="checkbox" id="sfollowing" checked="true">
               <br>
               <a class="btn btn-primary" style="color: white;" id="searchBtn">Search</a>
             </div>
@@ -79,45 +79,63 @@
           <div class="card-body" id="searchBody">
         </div>
 </div>
-    
-        <script>
-            $(document).ready(function(){
-                $("#logoutbtn").on("click",(event)=>{
-                    $.post('/logout').then((resp)=>{
-                        window.location.assign("/");
-                    });
-                });
-                $("#contentSubmit").on("click",(event)=>{
-                    let content =  $("#content").val();
-                    let item = {
-                       content:content
-                    }
-                    $.post('/additem', item).then((resp)=>{
-                        $("#itemId").text(resp.id);
-                    });
-                });
-                $("#getitem").on("click",(event)=>{
-                    let id = $("#tweetId").val().trim();
-                    window.location.assign("/item/"+id);
-                });
-                $("#searchBtn").on("click",(event)=>{
-                    let timestamp = $("#sTimestamp").val();
-                    let limit = $("#sLimit").val();
-                    let search = {
-                        timestamp: timestamp,
-                        limit: limit,
-                    };
-                    $('#searchBody').empty();
-                    $.post("/search", search).then((resp)=>{
-                        let results = resp.items;
-                        results.forEach(element => {
-                            $("#searchBody").append(` <h5 class="card-title">${element.username}</h5>
-                            <p>${element.content}</p>
-                            `)
-                        });
-                    });
-                });
-            })
+
+<script>
+$(document).ready(function(){
+    $("#logoutbtn").on("click",(event)=>{
+        $.post('/logout').then((resp)=>{
+            window.location.assign("/");
+        });
+    });
+    $("#contentSubmit").on("click",(event)=>{
+        let content =  $("#content").val();
+        let item = {
+            content:content
+        }
+        $.post('/additem', item).then((resp)=>{
+            $("#itemId").text(resp.id);
+        });
+    });
+    $("#getitem").on("click",(event)=>{
+        let id = $("#tweetId").val().trim();
+        window.location.assign("/item/"+id);
+    });
+    $("#searchBtn").on("click",(event)=>{
+        let timestamp = $("#sTimestamp").val();
+        let limit = $("#sLimit").val();
+        let search = {
+            timestamp: timestamp,
+            limit: limit,
+            q: $("#query").val(),
+            username:$("#susername").val(),
+            following: document.getElementById("sfollowing").checked ? true : false
+        };
+        $('#searchBody').empty();
+        $.post("/search", search).then((resp)=>{
+            let results = resp.items;
+            results.forEach(element => {
+                $("#searchBody").append(` <h5 class="card-title">${element.username}</h5>
+                <p>${element.content}</p>
+                `)
+            });
+        });
+    });
+    $('#deleteSubmit').on("click",(event)=>{
+      if($("#deleteId").val()!== ""){
+        $.ajax({
+        url: '/item/'+$('#deleteId').val(),
+        type: 'DELETE',
+        success: function(result) {
+          console.log(result)
+            $("#deleteStatus").text(result.status);
+        },
+        error: function(err){
+          $("#deleteStatus").text("error");
+        }
+});
+      }
+    })
+})
         </script>
 </body>
 </html>
