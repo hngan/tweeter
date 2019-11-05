@@ -17,16 +17,21 @@
       </div>
       <br>
       <div class="card" style = "width: 40%">
-            <h5 class="card-header">Search:</h5>
-            <div class="card-body">
-              <h5 class="card-title">Get Results Prior To:</h5>
-              <input type="number" placeholder="In Unix Time" style="margin-bottom: 15px;" id="sTimestamp">
-              <h5 class="card-title">Limit:</h5>
-              <input type="number" placeholder="number of max results" id="sLimit">
-              <br>
-              <br>
-              <a class="btn btn-primary" style="color: white;" id="searchBtn">Search</a>
-            </div>
+        <h5 class="card-header">Search:</h5>
+        <div class="card-body">
+          <h5 class="card-title">Get Results Prior To:</h5>
+          <input type="number" placeholder="In Unix Time" style="margin-bottom: 15px;" id="sTimestamp">
+          <h5 class="card-title">Limit:</h5>
+          <input type="number" placeholder="number of max results" id="sLimit">
+          <h5 class="card-title">Query:</h5>
+          <input type="texts" placeholder="What content?" id="query">
+          <br>
+          <h5 class="card-title">Username:</h5>
+          <input type="text" placeholder="Username" id="susername">
+          <br>
+          <br>
+          <a class="btn btn-primary" style="color: white;" id="searchBtn">Search</a>
+        </div>
           </div>
           <br>
  <div class="card" style="clear:left; margin-top:3%; width: 90%; position: relative; left: 5%;">
@@ -59,7 +64,10 @@
                     let limit = $("#sLimit").val();
                     let search = {
                         timestamp: timestamp,
-                        limit: limit
+                        limit: limit,
+                        q: $("#query").val(),
+                        username:$("#susername").val(),
+                        following: false
                     };
                     $('#searchBody').empty();
                     $.post("/search", search).then((resp)=>{
