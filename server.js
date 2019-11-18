@@ -373,16 +373,15 @@ app.post("/addmedia", (req, res)=>{
       console.error('Error', err)
       throw err
     }
-    let query = 'INSERT INTO tweeter (filename, content, type) VALUES (?, ?, ?)';
-    console.log(fields)
-    console.log(files)
-    let name = fields.filename;
+    let query = 'INSERT INTO tweeter (id, filename, content, type) VALUES (?, ?, ?, ?)';
     let file = files.content;
-    let type = files.type;
+    let type = file.type;
+    let name = file.name;
     var img = fs.readFileSync(file.path);
     var encode_image = img.toString('base64');
-    var imgfile =new Buffer(encode_image, 'base64')
-    let params = [name , imgfile, type]
+    var imgfile =new Buffer(encode_image, 'base64');
+    var id = file.name+String(Date.now())
+    let params = [id, name , imgfile, type]
     client.execute(query, params, { prepare: true })
     .then(result => console.log(result));
     res.status(200).json({status:"OK"});
