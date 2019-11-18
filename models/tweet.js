@@ -32,7 +32,7 @@ const TweetSchema = new Schema({
     },
     users:[{type: Schema.Types.ObjectId, ref:'User'}], //keep tracks of people who already liked
     parent: {type: Schema.Types.ObjectId, ref: 'Tweet'},
-    media: [{type: String}],
+    media: [{type: String, default:[]}],
     replies:[{type: Schema.Types.ObjectId, ref: 'Tweet'}],
     interest:{type: Number, default: 0}
 });

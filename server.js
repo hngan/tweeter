@@ -87,7 +87,7 @@ app.get("/",(req, res)=>{
         var password = req.body.password;
         db.User.find({username:username}, (err,resp) =>{
           if (resp.length === 0)
-         res.status(200).json({status:"error", error:"INCORRECT USERNAME OR PASSWORD"});
+         res.status(401).json({status:"error", error:"INCORRECT USERNAME OR PASSWORD"});
          else{
           let user = resp[0];
           if(user.password === password && user.verified){
@@ -96,7 +96,7 @@ app.get("/",(req, res)=>{
             res.status(200).json({status:"OK"})
           }
           else{
-            res.status(200).json({status:"error", error:"INCORRECT USERNAME OR PASSWORD"})
+            res.status(401).json({status:"error", error:"INCORRECT USERNAME OR PASSWORD"})
           }}
         })
       });
@@ -193,25 +193,42 @@ app.get("/",(req, res)=>{
  app.post('/search', (req, res)=>{
     let limit = req.body.limit ? parseInt(req.body.limit) : 25;
     let time = req.body.timestamp ? parseInt(req.body.timestamp) : Date.now()/1000;
-    let query ={timestamp: {$lte: time}}
-    let ranking = req.body.rank ==="time" ? "interest" : "timestamp"
-    let reply = req.body.replies === undefined || req.body.replies === "false" ? "reply" : "takeitall"; 
-
+    let query ={timestamp: {$lte: time}} //START OF QUERY
+    let ranking = req.body.rank === "time" ? {"timestamp":-1} : {"interest": -1} //ORDER BY INTEREST OR TIME
+    if(req.body.hasMedia)
+      query["media.0"] = { "$exists": true }
     if(req.body.q != "" && req.body.q != undefined)
       query.content = { "$regex": req.body.q.split(" ").join("|"), "$options": "i" }
+    if(req.body.parent){
+      console.log("TRUTHY", req.body.parent, req.body.replies);
+      if(req.body.replies == false){
+        query.childType = {$ne: "reply"}
+      }
+      else{
+        query.parent = req.body.parent
+      }
+      query.childType
+    }
+    if(req.body.replies == false){
+      query.childType = {$ne: "reply"}
+    }
     if(req.body.username)
       query.username = req.body.username;
-    else if(req.body.following === false || req.body.following ==="false"){
-      db.Tweet.find(query).limit(limit).sort({ranking: -1}).lean().then((data)=>{
+    //general search
+    if(req.body.following === false || req.body.following ==="false"){
+      console.log(query)
+      console.log(ranking)
+      db.Tweet.find(query).limit(limit).sort(ranking).lean().then((data)=>{
         if(data)
           res.json({status:"OK", items:data});
         });
     }
     else
-    db.User.find({_id:req.session.userId}).then((data)=>{
+    //followers only search
+    db.User.find({_id:req.session.userId}).lean().then((data)=>{
       if(data[0])
       query.author = {$in: data[0].following}
-      db.Tweet.find(query).where('username').ne(req.session.username).limit(limit).sort({ranking: -1}).lean().then((data)=>{
+      db.Tweet.find(query).where('username').ne(req.session.username).limit(limit).sort(ranking).lean().then((data)=>{
         if(data){
           res.json({status:"OK", items:data});}
             });
@@ -229,7 +246,7 @@ app.delete('/item/:id', (req, res)=>{
     if(req.session.username !== data[0].username){
       res.status(500).json({status:"error"});}
       else{
-        let query = "DELETE * FROM tweeter WHERE id = ?"
+        let query = "DELETE FROM tweeter WHERE id = ?"
         for(let i = 0; i <data[0].media.length; i++){
           client.execute(query, [data[0].media[i]]).then((err)=>{
             if(err)
@@ -442,7 +459,7 @@ app.get("/media/:id", (req, res)=>{
         res.contentType(result.rows[0].type).status(200).send(image);
     }
     else
-      res.status(400).send()
+      res.status(400).json({status:"ERROR", msg:"Media not found"})
     ;});
 });
 
@@ -450,11 +467,3 @@ app.get("/media/:id", (req, res)=>{
 app.listen(PORT, function() {
   console.log(`API Server now listening on PORT ${PORT}!`);
 });
-
-// CREATE TABLE tweeter ( 
-//   id text PRIMARY KEY, 
-//   filename text, 
-//   type text,
-//   content Blob,
-//   user text,
-//   parent, text );
