@@ -188,6 +188,13 @@ app.delete('/item/:id', (req, res)=>{
     if(req.session.username !== data[0].username){
       res.status(500).json({status:"error"});}
       else{
+        let query = "DELETE * FROM tweeter WHERE id = ?"
+        for(let i = 0; i <data[0].media.length; i++){
+          client.execute(query, [data[0].media[i]]).then((err)=>{
+            if(err)
+            console.log(err)
+          });
+        }
         db.Tweet.deleteOne({_id:req.params.id}, (err)=>{
           if(err){
             console.log("ERROR")
@@ -366,7 +373,7 @@ app.post("/addmedia", (req, res)=>{
       console.error('Error', err)
       throw err
     }
-    let query = 'INSERT INTO imgs (filename, contents, type) VALUES (?, ?, ?)';
+    let query = 'INSERT INTO tweeter (filename, contents, type) VALUES (?, ?, ?)';
     let name = fields.filename;
     let file = files.contents;
     let type = file.type;
@@ -381,7 +388,7 @@ app.post("/addmedia", (req, res)=>{
 });
 
 app.get("/media/:id", (req, res)=>{
-  let query = 'SELECT contents, type from imgs WHERE id = ?';
+  let query = 'SELECT contents, type from tweeter WHERE id = ?';
     let params = [req.params.ids];
     client.execute(query, params)
     .then(result => {
@@ -396,3 +403,4 @@ app.get("/media/:id", (req, res)=>{
 app.listen(PORT, function() {
   console.log(`API Server now listening on PORT ${PORT}!`);
 });
+
