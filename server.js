@@ -373,7 +373,7 @@ app.post("/addmedia", (req, res)=>{
       console.error('Error', err)
       throw err
     }
-    let query = 'INSERT INTO tweeter (filename, contents, type) VALUES (?, ?, ?)';
+    let query = 'INSERT INTO tweeter (filename, content, type) VALUES (?, ?, ?)';
     console.log(fields)
     console.log(files)
     let name = fields.filename;
@@ -390,7 +390,7 @@ app.post("/addmedia", (req, res)=>{
 });
 
 app.get("/media/:id", (req, res)=>{
-  let query = 'SELECT contents, type from tweeter WHERE id = ?';
+  let query = 'SELECT content, type from tweeter WHERE id = ?';
     let params = [req.params.ids];
     client.execute(query, params)
     .then(result => {
