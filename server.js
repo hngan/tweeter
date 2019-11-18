@@ -121,17 +121,57 @@ app.get("/",(req, res)=>{
        req.body.author = req.session.userId;
        req.body.username = req.session.username;
        if(req.body.content){
-        db.Tweet.create(req.body).then((tweet) =>{
-            let id = tweet._id;
-            db.User.findOneAndUpdate({username:req.session.username},{ $push: {tweets: id} }, { new: true }).then((resp)=>{
-              if(req.body.childType === "reply")
-              db.Tweet.findOneAndUpdate({_id:req.body.parent},{$push:{replies:id}},(resp)=>{res.status(200).json({status:"OK", id:id});});
-              else if(req.body.childType === "retweet")
-              db.Tweet.findOneAndUpdate({_id:req.body.parent},{$inc:{retweeted: 1}, $inc:{intrest: 1}},(resp)=>{res.status(200).json({status:"OK", id:id});});
-              else
-              res.status(200).json({status:"OK", id:id});
+         let query = "SELECT id, user, parent from tweeter WHERE id IN ?"
+        if(req.body.media)
+          client.execute(query, [req.body.media]).then((result)=>{
+            if(result.rowLength > 0){
+              for(let i = 0; i <  result.rowLength; i++){
+              let user = result.rows[i].user;
+              let parent = result.rows[i].parent;
+              if(parent !== "" || user !== req.session.username){
+              res.status(500).json({status:"error", error:"Bad media"})
+              return;}
+            }
+            for(let i = 0; i < result.rowLength; i++){
+              client.execute("UPDATE tweeter SET parent = ? WHERE id = ?", ["TAKEN",result.rows[i].id]).then((result)=>{})
+            }
+            if(req.body.childType === "retweet")
+            db.Tweet.find({_id:req.body.parent}).then(parent =>{
+              req.body.content = parent[0].content
+              db.Tweet.create(req.body).then(tweet =>{
+                db.Tweet.findOneAndUpdate({_id:req.body.parent},{$inc:{retweeted: 1, interest: 1}},(resp)=>{res.status(200).json({status:"OK", id:id});});
+              })
             })
-        })
+            else
+            db.Tweet.create(req.body).then((tweet) =>{
+              let id = tweet._id;
+              db.User.findOneAndUpdate({username:req.session.username},{ $push: {tweets: id} }, { new: true }).then((resp)=>{
+                if(req.body.childType === "reply")
+                db.Tweet.findOneAndUpdate({_id:req.body.parent},{$push:{replies:id}},(resp)=>{res.status(200).json({status:"OK", id:id});});
+                else
+                res.status(200).json({status:"OK", id:id});
+              })
+          })
+          }
+          });
+        else
+        if(req.body.childType === "retweet")
+            db.Tweet.find({_id:req.body.parent}).then(parent =>{
+              req.body.content = parent[0].content
+              db.Tweet.create(req.body).then(tweet =>{
+                db.Tweet.findOneAndUpdate({_id:req.body.parent},{$inc:{retweeted: 1, interest: 1}},(resp)=>{res.status(200).json({status:"OK", id:tweet._id});});
+              })
+            })
+            else
+            db.Tweet.create(req.body).then((tweet) =>{
+              let id = tweet._id;
+              db.User.findOneAndUpdate({username:req.session.username},{ $push: {tweets: id} }, { new: true }).then((resp)=>{
+                if(req.body.childType === "reply")
+                db.Tweet.findOneAndUpdate({_id:req.body.parent},{$push:{replies:id}},(resp)=>{res.status(200).json({status:"OK", id:tweet._id});});
+                else
+                res.status(200).json({status:"OK", id:id});
+              })
+          })
        }
        else
        res.status(500).json({status:"error", error:"NO CONTENT"})
@@ -142,7 +182,8 @@ app.get("/",(req, res)=>{
  });
  
  app.get('/item/:id',(req, res)=>{
-    db.Tweet.findById(req.params.id).then((data)=>{
+    db.Tweet.findById(req.params.id).lean().then((data)=>{
+      data.id = data._id
       res.status(200).json({status:"OK", item:data})
         }).catch((err)=>{
           res.status(500).json({status:"error", error:err})  
@@ -197,7 +238,6 @@ app.delete('/item/:id', (req, res)=>{
         }
         db.Tweet.deleteOne({_id:req.params.id}, (err)=>{
           if(err){
-            console.log("ERROR")
             res.status(500).json({status:"error"});
           }
           else{
@@ -368,12 +408,13 @@ app.post("/item/:id/like", (req, res)=>{
 });
 
 app.post("/addmedia", (req, res)=>{
+  if(req.session.userId){
   new formidable.IncomingForm().parse(req, (err, fields, files) => {
     if (err) {
       console.error('Error', err)
       throw err
     }
-    let query = 'INSERT INTO tweeter (id, filename, content, type) VALUES (?, ?, ?, ?)';
+    let query = 'INSERT INTO tweeter (id, filename, content, type, user, parent) VALUES (?, ?, ?, ?, ?, ?)';
     let file = files.content;
     let type = file.type;
     let name = file.name;
@@ -381,22 +422,27 @@ app.post("/addmedia", (req, res)=>{
     var encode_image = img.toString('base64');
     var imgfile =new Buffer(encode_image, 'base64');
     var id = file.name+String(Date.now())
-    let params = [id, name , imgfile, type]
+    let params = [id, name , imgfile, type,req.session.username, ""]
     client.execute(query, params, { prepare: true })
-    .then(result => console.log(result));
-    res.status(200).json({status:"OK"});
+    .then(result => {});
+    res.status(200).json({status:"OK", id: id});
   })
+}
+else
+res.status(500).json({status:"error"})
 });
 
 app.get("/media/:id", (req, res)=>{
   let query = 'SELECT content, type from tweeter WHERE id = ?';
-    let params = [req.params.ids];
+    let params = [req.params.id];
     client.execute(query, params)
     .then(result => {
         if(result.rowLength > 0){
-        let image = result.rows[0].contents;
+        let image = result.rows[0].content;
         res.contentType(result.rows[0].type).status(200).send(image);
     }
+    else
+      res.status(400).send()
     ;});
 });
 
@@ -405,3 +451,10 @@ app.listen(PORT, function() {
   console.log(`API Server now listening on PORT ${PORT}!`);
 });
 
+// CREATE TABLE tweeter ( 
+//   id text PRIMARY KEY, 
+//   filename text, 
+//   type text,
+//   content Blob,
+//   user text,
+//   parent, text );
