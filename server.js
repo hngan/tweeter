@@ -4,6 +4,9 @@ const session = require('express-session');
 const nodemailer = require('nodemailer');
 const path = require('path');
 const db = require('./models');
+const fs = require('fs');
+const cassandra =  require('cassandra-driver');
+const formidable = require('formidable');
 const app = express();
 const PORT = process.env.PORT || 3000;
  
@@ -19,6 +22,7 @@ app.use(session({
     sameSite:true }
   }))
 
+const client = new cassandra.Client({contactPoints:['127.0.0.1'], localDataCenter: 'datacenter1',keyspace:"hw6"});
 // Serve up static assets (usually on heroku)
 if (process.env.NODE_ENV === "production") {
   app.use(express.static("client/build"));
@@ -120,6 +124,11 @@ app.get("/",(req, res)=>{
         db.Tweet.create(req.body).then((tweet) =>{
             let id = tweet._id;
             db.User.findOneAndUpdate({username:req.session.username},{ $push: {tweets: id} }, { new: true }).then((resp)=>{
+              if(req.body.childType === "reply")
+              db.Tweet.findOneAndUpdate({_id:req.body.parent},{$push:{replies:id}},(resp)=>{res.status(200).json({status:"OK", id:id});});
+              else if(req.body.childType === "retweet")
+              db.Tweet.findOneAndUpdate({_id:req.body.parent},{$inc:{retweeted: 1}, $inc:{intrest: 1}},(resp)=>{res.status(200).json({status:"OK", id:id});});
+              else
               res.status(200).json({status:"OK", id:id});
             })
         })
@@ -134,7 +143,6 @@ app.get("/",(req, res)=>{
  
  app.get('/item/:id',(req, res)=>{
     db.Tweet.findById(req.params.id).then((data)=>{
-      data.id = data._id;
       res.status(200).json({status:"OK", item:data})
         }).catch((err)=>{
           res.status(500).json({status:"error", error:err})  
@@ -145,28 +153,25 @@ app.get("/",(req, res)=>{
     let limit = req.body.limit ? parseInt(req.body.limit) : 25;
     let time = req.body.timestamp ? parseInt(req.body.timestamp) : Date.now()/1000;
     let query ={timestamp: {$lte: time}}
+    let ranking = req.body.rank ==="time" ? "interest" : "timestamp"
+    let reply = req.body.replies === undefined || req.body.replies === "false" ? "reply" : "takeitall"; 
+
     if(req.body.q != "" && req.body.q != undefined)
       query.content = { "$regex": req.body.q.split(" ").join("|"), "$options": "i" }
     if(req.body.username)
       query.username = req.body.username;
-    if(req.body.following === false || req.body.following ==="false"){
-      db.Tweet.find(query).limit(limit).sort({timestamp: -1}).then((data)=>{
-        if(data){
-          for(let i = 0; i< data.length; i++){
-            data[i].id = data[i]._id
-            }
-          res.json({status:"OK", items:data});}
-            });
+    else if(req.body.following === false || req.body.following ==="false"){
+      db.Tweet.find(query).limit(limit).sort({ranking: -1}).lean().then((data)=>{
+        if(data)
+          res.json({status:"OK", items:data});
+        });
     }
     else
     db.User.find({_id:req.session.userId}).then((data)=>{
       if(data[0])
       query.author = {$in: data[0].following}
-      db.Tweet.find(query).where('username').ne(req.session.username).limit(limit).sort({timestamp: -1}).then((data)=>{
+      db.Tweet.find(query).where('username').ne(req.session.username).limit(limit).sort({ranking: -1}).lean().then((data)=>{
         if(data){
-          for(let i = 0; i< data.length; i++){
-            data[i].id = data[i]._id
-            }
           res.json({status:"OK", items:data});}
             });
     })
@@ -308,6 +313,84 @@ app.get("/user",(req, res)=>{
   else
   res.sendFile(path.join(__dirname,"nusers.html"));
 })
+
+//MILESTONE 3 STUFF
+app.post("/item/:id/like", (req, res)=>{
+  if(req.session.userId){
+    let like = true
+    if(req.body.like === false || req.body.like === "false")
+      like = false
+    if(like){
+      db.Tweet.find({_id:req.params.id}).then(data=>{
+        if(data.length > 0 ){
+          let tweet = data [0];
+          if(tweet.users.includes(req.session.userId))
+            res.status(200).json({status:"OK"});
+          else{
+          let likes = tweet.property.likes + 1;
+          db.Tweet.findOneAndUpdate({_id:req.params.id},{ 'property.likes':likes,$push: {users: req.session.userId}, $inc:{interest: 1} }).then((resp)=>{
+              res.status(200).json({status:"OK"});       
+          })
+        }
+        }
+        else
+          res.status(500).json({status:"error"});
+      })
+    }
+    //unlike
+    else{
+      db.Tweet.find({_id: req.params.id}).then(data=>{
+        if(data.length > 0 ){
+          let tweet = data [0];
+          if(tweet.users.includes(req.session.userId)){
+            let likes = tweet.property.likes - 1;
+            db.Tweet.findOneAndUpdate({_id:req.params.id},{'property.likes': likes, $pull: {users: req.session.userId},$inc:{interest: -1} }).then((resp)=>{
+                res.status(200).json({status:"OK"});
+            })
+          }   
+          else
+            res.status(200).json({status:"OK"});
+        }
+        else
+          res.status(500).json({status:"error"});
+      })
+    }
+  }
+  else
+  res.status(500).json({status:"error"})
+});
+
+app.post("/addmedia", (req, res)=>{
+  new formidable.IncomingForm().parse(req, (err, fields, files) => {
+    if (err) {
+      console.error('Error', err)
+      throw err
+    }
+    let query = 'INSERT INTO imgs (filename, contents, type) VALUES (?, ?, ?)';
+    let name = fields.filename;
+    let file = files.contents;
+    let type = file.type;
+    var img = fs.readFileSync(file.path);
+    var encode_image = img.toString('base64');
+    var imgfile =new Buffer(encode_image, 'base64')
+    let params = [name , imgfile, type]
+    client.execute(query, params, { prepare: true })
+    .then(result => console.log(result));
+    res.status(200).json({status:"OK"});
+  })
+});
+
+app.get("/media/:id", (req, res)=>{
+  let query = 'SELECT contents, type from imgs WHERE id = ?';
+    let params = [req.params.ids];
+    client.execute(query, params)
+    .then(result => {
+        if(result.rowLength > 0){
+        let image = result.rows[0].contents;
+        res.contentType(result.rows[0].type).status(200).send(image);
+    }
+    ;});
+});
 
 // Start the API server
 app.listen(PORT, function() {

@@ -19,7 +19,7 @@ const TweetSchema = new Schema({
     property:{
         likes:{
             type:Number,
-            default:0
+            default:0,
         }
     },
     timestamp:{
@@ -29,8 +29,12 @@ const TweetSchema = new Schema({
     childType:{
         type:String,
         default: null
-    }
-    
+    },
+    users:[{type: Schema.Types.ObjectId, ref:'User'}], //keep tracks of people who already liked
+    parent: {type: Schema.Types.ObjectId, ref: 'Tweet'},
+    media: [{type: String}],
+    replies:[{type: Schema.Types.ObjectId, ref: 'Tweet'}],
+    interest:{type: Number, default: 0}
 });
 
 const Tweet = mongoose.model("Tweet", TweetSchema);
