@@ -374,9 +374,11 @@ app.post("/addmedia", (req, res)=>{
       throw err
     }
     let query = 'INSERT INTO tweeter (filename, contents, type) VALUES (?, ?, ?)';
+    console.log(fields)
+    console.log(files)
     let name = fields.filename;
     let file = files.contents;
-    let type = file.type;
+    let type = files.type;
     var img = fs.readFileSync(file.path);
     var encode_image = img.toString('base64');
     var imgfile =new Buffer(encode_image, 'base64')
