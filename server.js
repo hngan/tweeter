@@ -377,7 +377,7 @@ app.post("/addmedia", (req, res)=>{
     console.log(fields)
     console.log(files)
     let name = fields.filename;
-    let file = files.contents;
+    let file = files.content;
     let type = files.type;
     var img = fs.readFileSync(file.path);
     var encode_image = img.toString('base64');
