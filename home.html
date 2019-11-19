@@ -217,6 +217,7 @@ $(document).ready(function(){
             let results = resp.items;
             results.forEach(element => {
                 $("#searchBody").append(` <h5 class="card-title">${element.username}</h5>
+                <p>${element._id}</p>
                 <p>${element.content}</p>
                 `)
             });
