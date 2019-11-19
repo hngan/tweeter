@@ -159,7 +159,7 @@ $(document).ready(function(){
         }
         if(document.getElementById("treply").checked){
           item.childType = "reply"
-          item.childType = $("#tparent").val()}
+          item.parent = $("#tparent").val()}
         if($("#tmedia").val() !== ""){
           item.media = $("#tmedia").val().split(" ")
         }
