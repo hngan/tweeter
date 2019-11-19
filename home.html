@@ -169,7 +169,7 @@ $(document).ready(function(){
     });
 
     $("#reSubmit").on("click",(event)=>{
-      $.post("/additem", {parent: $("#retweet").val(), media:$("#rmedia").val().split(" "), childType:"retweet"}).then((resp)=>{
+      $.post("/additem", {content:"blah", parent: $("#retweet").val(), media:$("#rmedia").val().split(" "), childType:"retweet"}).then((resp)=>{
         $("#retweetId").text(resp.id)
       })
     });
