@@ -149,7 +149,7 @@ app.get("/",(req, res)=>{
               let id = tweet._id;
               db.User.findOneAndUpdate({username:req.session.username},{ $push: {tweets: id} }, { new: true }).then((resp)=>{
                 if(req.body.childType === "reply")
-                db.Tweet.findOneAndUpdate({_id:req.body.parent},{$push:{replies:id}},(resp)=>{res.status(200).json({status:"OK", id:id});});
+                db.Tweet.findOneAndUpdate({_id:req.body.parent},{ $push:{replies:id} }, {new: true}).then((resp)=>{res.status(200).json({status:"OK", id:id});});
                 else
                 res.status(200).json({status:"OK", id:id});
               })
@@ -170,7 +170,7 @@ app.get("/",(req, res)=>{
               let id = tweet._id;
               db.User.findOneAndUpdate({username:req.session.username},{ $push: {tweets: id} }, { new: true }).then((resp)=>{
                 if(req.body.childType === "reply")
-                db.Tweet.findOneAndUpdate({_id:req.body.parent},{$push:{replies:id}},(resp)=>{res.status(200).json({status:"OK", id:tweet._id});});
+                db.Tweet.findOneAndUpdate({_id:req.body.parent},{$push:{replies:id}}, { new: true }).then((resp)=>{res.status(200).json({status:"OK", id:tweet._id});});
                 else
                 res.status(200).json({status:"OK", id:id});
               })
