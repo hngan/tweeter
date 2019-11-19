@@ -187,9 +187,8 @@ app.get("/",(req, res)=>{
  });
  
  app.get('/item/:id',(req, res)=>{
-    db.Tweet.findById(req.params.id).then((data)=>{
-      //data.id = data._id
-      console.log(data);
+    db.Tweet.findById(req.params.id).lean().then((data)=>{
+      data.id = data._id
       res.status(200).json({status:"OK", item:data})
         }).catch((err)=>{
           res.status(500).json({status:"error", error:err})  
