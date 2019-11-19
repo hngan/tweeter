@@ -58,8 +58,6 @@ app.get("/",(req, res)=>{
            transporter.sendMail(message, function (err, info) {
              if(err)
                console.log(err)
-             else
-               console.log(info);
               });
               res.status(200).json({status:"OK"});
             })}
@@ -75,11 +73,14 @@ app.get("/",(req, res)=>{
 
       app.post("/verify", (req, res) => {
         if(req.body.key === "abracadabra")
-          db.User.updateOne({email:req.body.email}, {verified:true}).then(()=>{
+          db.User.updateOne({email:req.body.email}, {verified:true}).then((result)=>{
+            if(result.n < 1)
+            res.status(401).json({status:"error", error:"Fake user"});
+            else
             res.status(200).json({status:"OK"});
           });
         else
-          res.status(500).json({status:"error", error:"INCORRECT KEY"});
+          res.status(401).json({status:"error", error:"INCORRECT KEY"});
       });
       
       app.post("/login", (req, res) => {
@@ -200,7 +201,6 @@ app.get("/",(req, res)=>{
     if(req.body.q != "" && req.body.q != undefined)
       query.content = { "$regex": req.body.q.split(" ").join("|"), "$options": "i" }
     if(req.body.parent){
-      console.log("TRUTHY", req.body.parent, req.body.replies);
       if(req.body.replies == false){
         query.childType = {$ne: "reply"}
       }
@@ -216,8 +216,6 @@ app.get("/",(req, res)=>{
       query.username = req.body.username;
     //general search
     if(req.body.following === false || req.body.following ==="false"){
-      console.log(query)
-      console.log(ranking)
       db.Tweet.find(query).limit(limit).sort(ranking).lean().then((data)=>{
         if(data)
           res.json({status:"OK", items:data});

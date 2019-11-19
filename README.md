@@ -8,7 +8,7 @@ CREATE TABLE tweeter (
   type text,
   content Blob,
   user text,
-  parent, text );
+  parent text );
 
 NEED TO APT INSTALL: NODEJS NGINX NPM MONGODB CASSANDRA
 NEED TO NPM INSTALL GLOBAL: PM2
