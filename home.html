@@ -31,11 +31,19 @@
         <h5 class="card-header">Tweet Something!</h5>
         <div class="card-body">
             <h5 class="card-title">Content</h5>
-            <textarea id="content" cols="65" rows="8" placeholder="You can tweet anything!"></textarea>
+            <textarea id="content" cols="60" rows="3" placeholder="You can tweet anything!"></textarea>
+            <h5 class="card-title">Media(Enter IDs with a space apart each):</h5>
+            <input type="text" placeholder="" id="rmedia">
+            <br>
+            <h5 class="card-title" style="display: inline">Reply?</h5>
+            <input type="checkbox"  id="treply">
+            <h5 class="card-title" style="display: inline">Parent ID</h5>
+            <input type="text"  id="tparent">
             <h5 class="card-title">Returned ID:<span id="itemId"></span></h5>
           <a class="btn btn-primary" id="contentSubmit" style="color: white;">Submit Tweet!</a>
         </div>
       </div>
+
       <div class="card" style = "width: 40%">
         <h5 class="card-header">Get Tweet JSON with id!</h5>
         <div class="card-body">
@@ -44,6 +52,52 @@
           <a class="btn btn-primary" style="color: white;" id="getitem">Submit</a>
         </div>
       </div>
+
+      <br>
+
+      <div class="card" style = "width: 40%; ">
+        <h5 class="card-header">Get Media with id!</h5>
+        <div class="card-body">
+          <label for="mediaId"><h5 class="card-title">ID:</h5></label>
+         <input type="text" id="tweetId">
+          <a class="btn btn-primary" style="color: white;" id="getmedia">Submit</a>
+        </div>
+      </div>
+
+      <br>
+
+      <div class="card" style = "width: 40%; ">
+        <h5 class="card-header">Like or Unlike a Post!</h5>
+        <div class="card-body">
+            <h5 class="card-title">Post Id to Like:</h5>
+            <input type="text" placeholder="Your tweet id to delete" id="likeId">
+            <button id="like">Like</button> <button id="unlike">Unlike</button> 
+          </div>
+      </div>
+
+      <div class="card" style = "width: 40%; float: left; margin-left: 5%; margin-right:10%">
+        <h5 class="card-header">Retweet!</h5>
+        <div class="card-body">
+            <h5 class="card-title">Parent Id:</h5>
+            <input type="text" placeholder="Parent" id="retweet">
+            <h5 class="card-title">Media(Enter IDs with a space apart each):</h5>
+            <input type="text" id="rmedia">
+            <h5 class="card-title">Retweet Id:<span id="retweetId"></span></h5>
+          <a class="btn btn-primary" id="reSubmit" style="color: white;">Submit!</a>
+        </div>
+      </div>
+
+      <form method="POST" action="/" enctype="multipart/form-data">
+        <div class="card" style = "width: 40%; float: left; margin-left: 5%; margin-right:10%">   
+          <h5 class="card-header">Upload a File!</h5>
+          <div class="card-body">  
+        <input type="file" name="document" />
+        <input type="submit" />
+        <h5 class="card-title">Returned ID:<span id="smediaId"></span></h5>
+      </div>
+      </div>
+      </form>
+
       <br>
       <div class="card" style = "width: 40%; float: left; margin-left: 5%; margin-right:10%">
         <h5 class="card-header">Delete Tweet!</h5>
@@ -54,6 +108,7 @@
           <a class="btn btn-primary" id="deleteSubmit" style="color: white;">Submit!</a>
         </div>
       </div>
+        
       <div class="card" style = "width: 40%">
             <h5 class="card-header">Search:</h5>
             <div class="card-body">
@@ -67,13 +122,23 @@
               <h5 class="card-title">Username:</h5>
               <input type="text" placeholder="Username" id="susername">
               <br>
+              <h5 class="card-title">Parent:</h5>
+              <input type="text" placeholder="Parent Username" id="sparent">
+              <br>
+              <h5 class="card-title">Replies:</h5>
+              <input type="checkbox" id="sreplies" checked="true">
+              <br>
               <h5 class="card-title">following:</h5>
               <input type="checkbox" id="sfollowing" checked="true">
+              <br>
+              <h5 class="card-title">media only:</h5>
+              <input type="checkbox" id="smedia" >
               <br>
               <a class="btn btn-primary" style="color: white;" id="searchBtn">Search</a>
             </div>
           </div>
           <br>
+
  <div class="card" style="clear:left; margin-top:3%; width: 90%; position: relative; left: 5%;">
     <h5 class="card-header">Search Results:</h5>
           <div class="card-body" id="searchBody">
@@ -92,14 +157,47 @@ $(document).ready(function(){
         let item = {
             content:content
         }
+        if(document.getElementById("treply").checked){
+          item.childType = "reply"
+          item.childType = $("#tparent").val()}
+        if($("#tmedia").val() !==""){
+          item.media = $("#tmedia").val().split(" ")
+        }
         $.post('/additem', item).then((resp)=>{
             $("#itemId").text(resp.id);
         });
     });
+
+    $("#reSubmit").on("click",(event)=>{
+      $.post("/additem", {parent: $("#retweet").val(), media:$("#rmedia").val().split(" "), childType:"retweet"}).then((resp)=>{
+        $("#retweetId").text(resp.id)
+      })
+    });
+
     $("#getitem").on("click",(event)=>{
         let id = $("#tweetId").val().trim();
         window.location.assign("/item/"+id);
     });
+
+    $("#getmedia").on("click",(event)=>{
+      let id = $("#mediaId").val().trim();
+      window.location.assign("/media/"+id);
+      });
+
+    $("#like").on("click",event=>{
+      let id = $("#likeId").val();
+      $.post("/item/"+id+"/like", {like:true}).then(resp=>{
+
+      })
+    });
+
+    $("#unlike").on("click",event=>{
+      let id = $("#likeId").val();
+      $.post("/item/"+id+"/like", {like:false}).then(resp=>{
+        
+      })
+    });
+    
     $("#searchBtn").on("click",(event)=>{
         let timestamp = $("#sTimestamp").val();
         let limit = $("#sLimit").val();
@@ -108,8 +206,12 @@ $(document).ready(function(){
             limit: limit,
             q: $("#query").val(),
             username:$("#susername").val(),
-            following: document.getElementById("sfollowing").checked ? true : false
+            following: document.getElementById("sfollowing").checked ? true : false,
+            replies: document.getElementById("sreplies").checked ? true : false,
+            media: document.getElementById("smedia").checked ? true : false,
         };
+        if($("#sparent").val() !== "")
+          search.parent = $("#sparent").val();
         $('#searchBody').empty();
         $.post("/search", search).then((resp)=>{
             let results = resp.items;

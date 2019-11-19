@@ -7,12 +7,20 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 </head>
 <body>
-        <div class="card" style = "width: 40%">
+        <div class="card" style = "width: 40%; float: left; margin-right: 5%">
         <h5 class="card-header">Get Tweet JSON with id!</h5>
         <div class="card-body">
           <label for="tweetId"><h5 class="card-title">ID:</h5></label>
          <input type="text" id="tweetId">
           <a class="btn btn-primary" style="color: white;" id="getitem">Submit</a>
+        </div>
+      </div>
+      <div class="card" style = "width: 40%; ">
+        <h5 class="card-header">Get Media with id!</h5>
+        <div class="card-body">
+          <label for="mediaId"><h5 class="card-title">ID:</h5></label>
+         <input type="text" id="tweetId">
+          <a class="btn btn-primary" style="color: white;" id="getmedia">Submit</a>
         </div>
       </div>
       <br>
@@ -29,6 +37,15 @@
           <h5 class="card-title">Username:</h5>
           <input type="text" placeholder="Username" id="susername">
           <br>
+          <h5 class="card-title">Parent:</h5>
+              <input type="text" placeholder="Parent Username" id="sparent">
+              <br>
+              <h5 class="card-title">Replies:</h5>
+              <input type="checkbox" id="sreplies" checked="true">
+            <br>
+              <h5 class="card-title">media only:</h5>
+              <input type="checkbox" id="smedia" >
+              <br>
           <br>
           <a class="btn btn-primary" style="color: white;" id="searchBtn">Search</a>
         </div>
@@ -59,6 +76,12 @@
                     let id = $("#tweetId").val().trim();
                     window.location.assign("/item/"+id);
                 });
+
+                $("#getmedia").on("click",(event)=>{
+                    let id = $("#mediaId").val().trim();
+                    window.location.assign("/media/"+id);
+                });
+
                 $("#searchBtn").on("click",(event)=>{
                     let timestamp = $("#sTimestamp").val();
                     let limit = $("#sLimit").val();
@@ -67,8 +90,12 @@
                         limit: limit,
                         q: $("#query").val(),
                         username:$("#susername").val(),
-                        following: false
+                        following: false,
+                        replies: document.getElementById("sreplies").checked ? true : false,
+                        media: document.getElementById("smedia").checked ? true : false,
                     };
+                    if($("#sparent").val() !== "")
+                        search.parent = $("#sparent").val();
                     $('#searchBody').empty();
                     $.post("/search", search).then((resp)=>{
                         let results = resp.items;
@@ -80,6 +107,6 @@
                     });
                 });
             })
-        </script></script>
+        </script>
 </body>
 </html>
