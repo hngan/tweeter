@@ -33,7 +33,7 @@
             <h5 class="card-title">Content</h5>
             <textarea id="content" cols="60" rows="3" placeholder="You can tweet anything!"></textarea>
             <h5 class="card-title">Media(Enter IDs with a space apart each):</h5>
-            <input type="text" placeholder="" id="rmedia">
+            <input type="text" placeholder="" id="tmedia">
             <br>
             <h5 class="card-title" style="display: inline">Reply?</h5>
             <input type="checkbox"  id="treply">
@@ -160,7 +160,7 @@ $(document).ready(function(){
         if(document.getElementById("treply").checked){
           item.childType = "reply"
           item.childType = $("#tparent").val()}
-        if($("#tmedia").val() !==""){
+        if($("#tmedia").val() !== ""){
           item.media = $("#tmedia").val().split(" ")
         }
         $.post('/additem', item).then((resp)=>{
