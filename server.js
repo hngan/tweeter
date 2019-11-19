@@ -133,14 +133,17 @@ app.get("/",(req, res)=>{
               res.status(500).json({status:"error", error:"Bad media"})
               return;}
             }
+            let medias = []
             for(let i = 0; i < result.rowLength; i++){
-              client.execute("UPDATE tweeter SET parent = ? WHERE id = ?", ["TAKEN",result.rows[i].id]).then((result)=>{})
+              medias.push(result.rows[i].id)
+              client.execute("UPDATE tweeter SET parent = ? WHERE id = ?", ["TAKEN",result.rows[i].id]).then((result)=>{
+              })
             }
             if(req.body.childType === "retweet")
             db.Tweet.find({_id:req.body.parent}).then(parent =>{
               req.body.content = parent[0].content
               db.Tweet.create(req.body).then(tweet =>{
-                db.Tweet.findOneAndUpdate({_id:req.body.parent},{$inc:{retweeted: 1, interest: 1}},(resp)=>{res.status(200).json({status:"OK", id:id});});
+                db.Tweet.findOneAndUpdate({_id:req.body.parent},{$inc:{retweeted: 1, interest: 1},media:medias},(resp)=>{res.status(200).json({status:"OK", id:id});});
               })
             })
             else
@@ -148,19 +151,20 @@ app.get("/",(req, res)=>{
               let id = tweet._id;
               db.User.findOneAndUpdate({username:req.session.username},{ $push: {tweets: id} }, { new: true }).then((resp)=>{
                 if(req.body.childType === "reply")
-                db.Tweet.findOneAndUpdate({_id:req.body.parent},{$push:{replies:id}},(resp)=>{res.status(200).json({status:"OK", id:id});});
+                db.Tweet.findOneAndUpdate({_id:req.body.parent},{$push:{replies:id},media:medias},(resp)=>{res.status(200).json({status:"OK", id:id});});
                 else
                 res.status(200).json({status:"OK", id:id});
               })
           })
           }
           });
+        //no media
         else
         if(req.body.childType === "retweet")
             db.Tweet.find({_id:req.body.parent}).then(parent =>{
               req.body.content = parent[0].content
               db.Tweet.create(req.body).then(tweet =>{
-                db.Tweet.findOneAndUpdate({_id:req.body.parent},{$inc:{retweeted: 1, interest: 1}},(resp)=>{res.status(200).json({status:"OK", id:tweet._id});});
+                db.Tweet.findOneAndUpdate({_id:req.body.parent},{$inc:{retweeted: 1, interest: 1},},(resp)=>{res.status(200).json({status:"OK", id:tweet._id});});
               })
             })
             else
