@@ -5,6 +5,7 @@ const nodemailer = require('nodemailer');
 const path = require('path');
 const db = require('./models');
 const fs = require('fs');
+const exphbs = require('express-handlebars');
 const cassandra =  require('cassandra-driver');
 const formidable = require('formidable');
 const app = express();
