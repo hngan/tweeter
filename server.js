@@ -460,7 +460,7 @@ app.get("/login",(req, res)=>{
   res.render("login")
 });
 
-app.get("/signup",(req, res)=>{
+app.get("/register",(req, res)=>{
   res.render("signup")
 });
 
