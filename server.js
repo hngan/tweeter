@@ -2,7 +2,6 @@ const express = require('express');
 const mongoose = require('mongoose');
 const session = require('express-session');
 const nodemailer = require('nodemailer');
-const path = require('path');
 const db = require('./models');
 const fs = require('fs');
 const exphbs = require('express-handlebars');
@@ -20,19 +19,18 @@ app.use(session({
     resave: false,
     saveUninitialized: true,
     cookie: { secure: false,
-    sameSite:true }
-  }))
+    sameSite:true },
+    store: new MemcachedStore({
+      hosts: ["127.0.0.1:11211"],
+      secret: "KWUPPYCAT" // Optionally use transparent encryption for memcache session data
+    })
+}));
 
 app.use(express.static(__dirname+'/public'));
 app.engine("handlebars", exphbs({ defaultLayout: "main" }));
 app.set("view engine", "handlebars");
 
 const client = new cassandra.Client({contactPoints:['127.0.0.1'], localDataCenter: 'datacenter1',keyspace:"hw6"});
-// Serve up static assets (usually on heroku)
-if (process.env.NODE_ENV === "production") {
-  app.use(express.static("client/build"));
-}
-
 mongoose.connect("mongodb://localhost/tweeter", { useNewUrlParser: true });
 
 var transporter = nodemailer.createTransport({
@@ -42,10 +40,6 @@ var transporter = nodemailer.createTransport({
        pass: 'Cse356iscool'
     }
   });
-
-app.get("/",(req, res)=>{
-  res.render("index");
-})
 
   app.post("/adduser", (req, res) => {
     db.User.find({username:req.body.username}, (err,resp) => {
@@ -455,7 +449,52 @@ app.get("/media/:id", (req, res)=>{
     ;});
 });
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 //UI STUFF
+app.get("/",(req, res)=>{
+  res.render("index");
+})
+
 app.get("/login",(req, res)=>{
   res.render("login")
 });
