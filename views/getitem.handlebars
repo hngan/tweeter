@@ -1,0 +1,15 @@
+<div class="card" style = "width: 40%">
+        <h5 class="card-header">Get Tweet JSON with id!</h5>
+        <div class="card-body">
+          <label for="tweetId"><h5 class="card-title">ID:</h5></label>
+         <input type="text" id="itemId">
+          <a class="btn btn-primary" style="color: white;" id="getitem">Submit</a>
+        </div>
+      </div>
+
+<script>
+     $("#getitem").on("click",(event)=>{
+        let id = $("#itemId").val().trim();
+        window.location.assign("/item/"+id);
+    });
+</script>

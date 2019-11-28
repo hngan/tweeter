@@ -1,0 +1,30 @@
+<form>
+    <label for="follower">Follow or Unfollow:</label>
+    <input type="text" placeholder="User to follow/unfollow" id="userId">
+    <br>
+     <button id="follow">Follow</button> <button id="unfollow">Unfollow</button>
+</form>
+
+<script>
+     $("#follow").on("click",(event)=>{
+            event.preventDefault();
+            
+            if($("#userId").val()!==""){
+                let follow = {
+                    username: $("#follower").val(),
+                }
+                $.post("/follow", follow);
+            }
+        });
+
+        $("#unfollow").on("click",(event)=>{
+            event.preventDefault();
+            if($("#userId").val()!==""){
+                let follow = {
+                    username: $("#follower").val(),
+                    follow: false
+                }
+                $.post("/follow", follow);
+            }
+        });
+</script>

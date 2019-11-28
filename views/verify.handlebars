@@ -1,0 +1,22 @@
+<div class="col-sm-12 text-center">
+    <h3>Verify</h3>
+<form>
+<label for="email">Email: </label>
+<input name="email" id="email">
+<label for="key">Key: </label>
+<input name="key" id="key" type="password">
+<button type='submit' id="verify">Verify</button>
+</form>
+</div>
+<script>
+$("#verify").on("click",(event) => {
+    event.preventDefault();
+    let user = {
+        email: $("#email").val(),
+        key: $("#key").val()
+    }
+    $.post("/verify", user).then((resp) =>{
+        console.log(resp);
+    });
+});
+</script>

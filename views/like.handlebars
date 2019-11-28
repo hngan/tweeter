@@ -1,0 +1,20 @@
+<div class="card" style = "width: 40%; ">
+        <h5 class="card-header">Like or Unlike a Post!</h5>
+        <div class="card-body">
+            <h5 class="card-title">Post Id to Like:</h5>
+            <input type="text" placeholder="Your tweet id to like" id="itemId">
+            <button id="like">Like</button> <button id="unlike">Unlike</button> 
+          </div>
+      </div>
+<script>
+     $("#like").on("click",event=>{
+      let id = $("#itemId").val();
+      $.post("/item/"+id+"/like", {like:true}).then(resp=>{
+      })
+    });
+    $("#unlike").on("click",event=>{
+      let id = $("#itemId").val();
+      $.post("/item/"+id+"/like", {like:false}).then(resp=>{       
+      })
+    });
+</script>

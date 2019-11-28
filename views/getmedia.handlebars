@@ -1,0 +1,14 @@
+ <div class="card" style = "width: 40%; ">
+    <h5 class="card-header">Get Media with id!</h5>
+    <div class="card-body">
+        <label for="mediaId"><h5 class="card-title">ID:</h5></label>
+        <input type="text" id="mediaId">
+        <a class="btn btn-primary" style="color: white;" id="getmedia">Get media</a>
+    </div>
+    </div>
+<script>
+    $("#getmedia").on("click",(event)=>{
+      let id = $("#mediaId").val().trim();
+      window.location.assign("/media/"+id);
+      });
+</script>

@@ -1,0 +1,26 @@
+<div class="card" >
+        <h5 class="card-header">Delete Tweet!</h5>
+        <div class="card-body">
+            <h5 class="card-title">Tweet Id to delete:</h5>
+            <input type="text" placeholder="Your tweet id to delete" id="deleteId">
+            <h5 class="card-title">Status:<span id="deleteStatus"></span></h5>
+          <a class="btn btn-primary" id="deleteSubmit" style="color: white;">Delete</a>
+        </div>
+</div>
+<script>
+    $('#deleteSubmit').on("click",(event)=>{
+    if($("#deleteId").val()!== ""){
+    $.ajax({
+    url: '/item/'+$('#deleteId').val(),
+    type: 'DELETE',
+    success: function(result) {
+        console.log(result)
+        $("#deleteStatus").text(result.status);
+    },
+    error: function(err){
+        $("#deleteStatus").text("error");
+    }
+});
+    }
+})
+</script>

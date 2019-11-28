@@ -1,0 +1,59 @@
+<div class="card">
+<h5 class="card-header">Search:</h5>
+<div class="card-body">
+    <h5 class="card-title">Get Results Prior To:</h5>
+    <input type="number" placeholder="In Unix Time" style="margin-bottom: 15px;" id="Timestamp">
+    <h5 class="card-title">Limit:</h5>
+    <input type="number" placeholder="number of max results" id="Limit">
+    <h5 class="card-title">Query:</h5>
+    <input type="texts" placeholder="What content?" id="query">
+    <br>
+    <h5 class="card-title">Username:</h5>
+    <input type="text" placeholder="Username" id="username">
+    <br>
+    <h5 class="card-title">Parent:</h5>
+        <input type="text" placeholder="Parent Username" id="parent">
+        <br>
+        <h5 class="card-title">Replies:</h5>
+        <input type="checkbox" id="replies" checked="true">
+    <br>
+        <h5 class="card-title">media only:</h5>
+        <input type="checkbox" id="media" >
+        <br>
+    <br>
+    <a class="btn btn-primary" style="color: white;" id="search">Search</a>
+</div>
+    </div>
+    <br>
+<div class="card" style="clear:left; margin-top:3%; width: 90%; position: relative; left: 5%;">
+<h5 class="card-header">Search Results:</h5>
+    <div class="card-body" id="results">
+</div>
+</div>
+
+<script>
+$("#search").on("click",(event)=>{
+    let timestamp = $("#Timestamp").val();
+    let limit = $("#Limit").val();
+    let search = {
+        timestamp: timestamp,
+        limit: limit,
+        q: $("#query").val(),
+        username:$("#username").val(),
+        following: false,
+        replies: document.getElementById("replies").checked ? true : false,
+        media: document.getElementById("media").checked ? true : false,
+    };
+    if($("#parent").val() !== "")
+        search.parent = $("#sparent").val();
+    $('#results').empty();
+    $.post("/search", search).then((resp)=>{
+        let results = resp.items;
+        results.forEach(element => {
+            $("#results").append(` <h5 class="card-title">${element.username}</h5>
+            <p>${element.content}</p>
+            `)
+        });
+    });
+});
+</script>

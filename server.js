@@ -22,6 +22,10 @@ app.use(session({
     sameSite:true }
   }))
 
+app.use(express.static(__dirname+'/public'));
+app.engine("handlebars", exphbs({ defaultLayout: "main" }));
+app.set("view engine", "handlebars");
+
 const client = new cassandra.Client({contactPoints:['127.0.0.1'], localDataCenter: 'datacenter1',keyspace:"hw6"});
 // Serve up static assets (usually on heroku)
 if (process.env.NODE_ENV === "production") {
@@ -39,7 +43,7 @@ var transporter = nodemailer.createTransport({
   });
 
 app.get("/",(req, res)=>{
-  res.sendFile(path.join(__dirname,"index.html"));
+  res.render("index");
 })
 
   app.post("/adduser", (req, res) => {
@@ -111,12 +115,6 @@ app.get("/",(req, res)=>{
       })
     });
  
-  app.get("/home", (req, res)=>{
-    if(req.session.userId)
-    res.sendFile(path.join(__dirname,"home.html"));
-    else
-    res.sendFile(path.join(__dirname,"error.html"));
-  });
  app.post('/additem', (req, res)=>{
      if(req.session.userId){
        req.body.author = req.session.userId;
@@ -371,13 +369,6 @@ else
 res.status(500).json({status:"error"})
 });
 
-app.get("/user",(req, res)=>{
-  if(req.session.userId)
-  res.sendFile(path.join(__dirname,"users.html"));
-  else
-  res.sendFile(path.join(__dirname,"nusers.html"));
-})
-
 //MILESTONE 3 STUFF
 app.post("/item/:id/like", (req, res)=>{
   if(req.session.userId){
@@ -463,6 +454,66 @@ app.get("/media/:id", (req, res)=>{
     ;});
 });
 
+//UI STUFF
+app.get("/login",(req, res)=>{
+  res.render("login")
+});
+
+app.get("/signup",(req, res)=>{
+  res.render("signup")
+});
+
+app.get("/verify",(req, res)=>{
+  res.render("verify")
+});
+
+app.get("/additem",(req, res)=>{
+  res.render("additem")
+});
+
+app.get("/searchpage",(req, res)=>{
+  if(req.session.id){
+    res.render("ssearch")
+  }
+  else
+    res.render("search")
+});
+
+app.get("/getuser",(req, res)=>{
+  res.render("user")
+});
+
+app.get("/getuserfollowers",(req, res)=>{
+  res.render("followers")
+});
+
+app.get("/getuserposts",(req, res)=>{
+  res.render("posts")
+});
+
+app.get("/getuserfollowing",(req, res)=>{
+ res.render("following");
+});
+
+app.get("/getitem",(req, res)=>{
+  res.render("getitem")
+});
+
+app.get("/getmedia",(req, res)=>{
+  res.render("getmedia");
+});
+
+app.get("/likeuser",(req, res)=>{
+  res.render("like")
+});
+
+app.get("/deleteitem",(req, res)=>{
+  res.render("delete")
+});
+
+app.get("/follow",(req, res)=>{
+  res.render("follow");
+})
 // Start the API server
 app.listen(PORT, function() {
   console.log(`API Server now listening on PORT ${PORT}!`);

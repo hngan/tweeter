@@ -1,0 +1,12 @@
+ <form>
+    <label for="following">Find User's Following People:</label>
+    <input type="text" placeholder="Username" id="userId">
+    <br>
+     <button id="getFollowing">get Following</button>
+</form>
+<script>
+    $("#getFollowing").on("click",(event)=>{
+            event.preventDefault()
+            window.location.assign("/user/"+$("#userId").val()+"/following")
+        });
+</script>

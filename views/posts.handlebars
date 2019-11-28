@@ -1,0 +1,12 @@
+<form>
+    <label for="posts">Find User's Posts:</label>
+    <input type="" placeholder="Username" id="userId">
+    <br>
+     <button id="getPosts">Find Posts</button>
+</form>
+<script>
+     $("#getPosts").on("click",(event)=>{
+            event.preventDefault()
+            window.location.assign("/user/"+$("#userId").val()+"/posts")
+        });
+</script>

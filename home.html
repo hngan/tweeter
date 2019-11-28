@@ -1,29 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Milestone 2</title>
+    <title>Milestone 4</title>
 	<!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 </head>
 <body>
-    <nav class="navbar fixed-top navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="#">Tweeter</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-      
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-          <ul class="navbar-nav mr-auto">
-            <li class="nav-item active">
-              <a class="nav-link" href="/user">Profile<span class="sr-only">(current)</span></a>
-            </li>
-          </ul>
-          <form class="form-inline my-2 my-lg-0">
-            <button class="btn btn-outline-danger my-2 my-sm-0" id="logoutbtn">Logout</button>
-          </form>
-        </div>
-      </nav>
+    
     <br>
     <br>
     <br>
@@ -44,36 +28,14 @@
         </div>
       </div>
 
-      <div class="card" style = "width: 40%">
-        <h5 class="card-header">Get Tweet JSON with id!</h5>
-        <div class="card-body">
-          <label for="tweetId"><h5 class="card-title">ID:</h5></label>
-         <input type="text" id="tweetId">
-          <a class="btn btn-primary" style="color: white;" id="getitem">Submit</a>
-        </div>
-      </div>
+      
+      <br>
+
+     
 
       <br>
 
-      <div class="card" style = "width: 40%; ">
-        <h5 class="card-header">Get Media with id!</h5>
-        <div class="card-body">
-          <label for="mediaId"><h5 class="card-title">ID:</h5></label>
-         <input type="text" id="mediaId">
-          <a class="btn btn-primary" style="color: white;" id="getmedia">Submit</a>
-        </div>
-      </div>
-
-      <br>
-
-      <div class="card" style = "width: 40%; ">
-        <h5 class="card-header">Like or Unlike a Post!</h5>
-        <div class="card-body">
-            <h5 class="card-title">Post Id to Like:</h5>
-            <input type="text" placeholder="Your tweet id to delete" id="likeId">
-            <button id="like">Like</button> <button id="unlike">Unlike</button> 
-          </div>
-      </div>
+      
 
       <div class="card" style = "width: 40%; float: left; margin-left: 5%; margin-right:10%">
         <h5 class="card-header">Retweet!</h5>
@@ -99,59 +61,10 @@
       </form>
 
       <br>
-      <div class="card" style = "width: 40%; float: left; margin-left: 5%; margin-right:10%">
-        <h5 class="card-header">Delete Tweet!</h5>
-        <div class="card-body">
-            <h5 class="card-title">Tweet Id to delete:</h5>
-            <input type="text" placeholder="Your tweet id to delete" id="deleteId">
-            <h5 class="card-title">Status:<span id="deleteStatus"></span></h5>
-          <a class="btn btn-primary" id="deleteSubmit" style="color: white;">Submit!</a>
-        </div>
-      </div>
-        
-      <div class="card" style = "width: 40%">
-            <h5 class="card-header">Search:</h5>
-            <div class="card-body">
-              <h5 class="card-title">Get Results Prior To:</h5>
-              <input type="number" placeholder="In Unix Time" style="margin-bottom: 15px;" id="sTimestamp">
-              <h5 class="card-title">Limit:</h5>
-              <input type="number" placeholder="number of max results" id="sLimit">
-              <h5 class="card-title">Query:</h5>
-              <input type="texts" placeholder="What content?" id="query">
-              <br>
-              <h5 class="card-title">Username:</h5>
-              <input type="text" placeholder="Username" id="susername">
-              <br>
-              <h5 class="card-title">Parent:</h5>
-              <input type="text" placeholder="Parent Username" id="sparent">
-              <br>
-              <h5 class="card-title">Replies:</h5>
-              <input type="checkbox" id="sreplies" checked="true">
-              <br>
-              <h5 class="card-title">following:</h5>
-              <input type="checkbox" id="sfollowing" checked="true">
-              <br>
-              <h5 class="card-title">media only:</h5>
-              <input type="checkbox" id="smedia" >
-              <br>
-              <a class="btn btn-primary" style="color: white;" id="searchBtn">Search</a>
-            </div>
-          </div>
-          <br>
-
- <div class="card" style="clear:left; margin-top:3%; width: 90%; position: relative; left: 5%;">
-    <h5 class="card-header">Search Results:</h5>
-          <div class="card-body" id="searchBody">
-        </div>
-</div>
 
 <script>
 $(document).ready(function(){
-    $("#logoutbtn").on("click",(event)=>{
-        $.post('/logout').then((resp)=>{
-            window.location.assign("/");
-        });
-    });
+
     $("#contentSubmit").on("click",(event)=>{
         let content =  $("#content").val();
         let item = {
@@ -168,79 +81,10 @@ $(document).ready(function(){
         });
     });
 
-    $("#reSubmit").on("click",(event)=>{
-      let q = {content:"blah", parent: $("#retweet").val(), childType:"retweet"}
-      if($("#rmedia").val()!=="")
-        q.media = $("#rmedia").val().split(" ")
-      $.post("/additem", q).then((resp)=>{
-        $("#retweetId").text(resp.id)
-      })
-    });
-
-    $("#getitem").on("click",(event)=>{
-        let id = $("#tweetId").val().trim();
-        window.location.assign("/item/"+id);
-    });
-
-    $("#getmedia").on("click",(event)=>{
-      let id = $("#mediaId").val().trim();
-      window.location.assign("/media/"+id);
-      });
-
-    $("#like").on("click",event=>{
-      let id = $("#likeId").val();
-      $.post("/item/"+id+"/like", {like:true}).then(resp=>{
-
-      })
-    });
-
-    $("#unlike").on("click",event=>{
-      let id = $("#likeId").val();
-      $.post("/item/"+id+"/like", {like:false}).then(resp=>{
-        
-      })
-    });
+   
     
-    $("#searchBtn").on("click",(event)=>{
-        let timestamp = $("#sTimestamp").val();
-        let limit = $("#sLimit").val();
-        let search = {
-            timestamp: timestamp,
-            limit: limit,
-            q: $("#query").val(),
-            username:$("#susername").val(),
-            following: document.getElementById("sfollowing").checked ? true : false,
-            replies: document.getElementById("sreplies").checked ? true : false,
-            media: document.getElementById("smedia").checked ? true : false,
-        };
-        if($("#sparent").val() !== "")
-          search.parent = $("#sparent").val();
-        $('#searchBody').empty();
-        $.post("/search", search).then((resp)=>{
-            let results = resp.items;
-            results.forEach(element => {
-                $("#searchBody").append(` <h5 class="card-title">${element.username}</h5>
-                <p>${element._id}</p>
-                <p>${element.content}</p>
-                `)
-            });
-        });
-    });
-    $('#deleteSubmit').on("click",(event)=>{
-      if($("#deleteId").val()!== ""){
-        $.ajax({
-        url: '/item/'+$('#deleteId').val(),
-        type: 'DELETE',
-        success: function(result) {
-          console.log(result)
-            $("#deleteStatus").text(result.status);
-        },
-        error: function(err){
-          $("#deleteStatus").text("error");
-        }
-});
-      }
-    })
+    
+    
 })
         </script>
 </body>

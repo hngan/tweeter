@@ -1,0 +1,28 @@
+<div class="col-sm-12 text-center">
+<h3>Sign Up</h3>
+<form >
+<label for="name">Username: </label>
+<input name="name" id = "username">
+<label for="name">Email: </label>
+<input name="email"  type="email" id = "email">
+<label for="name">Password: </label>
+<input name="password" type="password" id = "password">
+<button type='submit' id="signup">Register</button>
+</form>
+
+</div>
+<script>
+    $("#signup").on("click",(event) =>{
+    event.preventDefault();
+    let newUser = {
+        username: $("#username").val(),
+        email: $("#email").val(),
+        password: $("#password").val()
+    };
+    $.post("/adduser", newUser).then((resp) =>{
+        console.log(resp)
+    });
+
+    });
+                
+</script>
