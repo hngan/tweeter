@@ -38,11 +38,11 @@ $("#addMedia").on("click",function(event){
 	success: function(result) {
 	    if (result.status === "OK") {
 		document.getElementById("uploaded_media").innerHTML += "<br>" + result.id;
-		if (document.getElementById("media_list").value == "") {
-		    document.getElementById("media_list").value = result.id;
+		if (document.getElementById("mediaList").value == "") {
+		    document.getElementById("mediaList").value = result.id;
 		}
 		else {
-		    document.getElementById("media_list").value += "," + result.id;
+		    document.getElementById("mediaList").value += "," + result.id;
 		}
 	    }
 	    else {
