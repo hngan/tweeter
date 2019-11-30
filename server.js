@@ -201,11 +201,11 @@ var transporter = nodemailer.createTransport({
     if(req.body.q != "" && req.body.q != undefined){
       let q = escapeRegExp(req.body.q);
       query.content = { "$regex": q.split(" ").join("|"), "$options": "i" }}
-    if(req.body.replies == false){
+    if(req.body.replies == false || req.body.replies ==="false"){
       query.childType = {$ne: "reply"}
     }
     else{
-      if(req.body.parent)
+      if(req.body.parent !== "")
         query.parent = req.body.parent
     }
     if(req.body.username)

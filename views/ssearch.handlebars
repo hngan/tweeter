@@ -42,7 +42,7 @@ $("#search").on("click",(event)=>{
         username:$("#username").val(),
         following: false,
         replies: document.getElementById("replies").checked ? true : false,
-        media: document.getElementById("media").checked ? true : false,
+        hasMedia: document.getElementById("media").checked ? true : false,
     };
     if($("#parent").val() !== "")
         search.parent = $("#sparent").val();
