@@ -443,7 +443,6 @@ app.get("/media/:id", (req, res)=>{
     .then(result => {
         if(result.rowLength > 0){
         let image = result.rows[0].content;
-        let obj = {type: result.rows[0].type, image: image}
         res.contentType(result.rows[0].type).status(200).send(image); 
     }
     else
