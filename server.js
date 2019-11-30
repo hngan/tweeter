@@ -7,6 +7,7 @@ const fs = require('fs');
 const exphbs = require('express-handlebars');
 const cassandra =  require('cassandra-driver');
 const formidable = require('formidable');
+const Memcached = require('memcached');
 const MemcachedStore = require("connect-memcached")(session);
 const app = express();
 const PORT = process.env.PORT || 3000;
