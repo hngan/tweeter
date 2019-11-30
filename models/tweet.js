@@ -38,3 +38,21 @@ const TweetSchema = new Schema({
 
 const Tweet = mongoose.model("Tweet", TweetSchema);
 module.exports = Tweet;
+
+/*
+{
+    id: String,
+    author: username,
+    content: text,
+    retweeted: number,
+    property: {{likes: number}},
+    timestamp: Date.now()/1000,
+    childType:String,
+    users:[String],
+    parent: String,
+    replies:[String],
+    interest:number,
+    media:[]
+}
+
+*/

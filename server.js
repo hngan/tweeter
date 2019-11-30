@@ -92,9 +92,9 @@ var transporter = nodemailer.createTransport({
          else{
           let user = resp[0];
           if(user.password === password && user.verified){
+            res.status(200).json({status:"OK"})
             req.session.userId = user._id;
             req.session.username = user.username
-            res.status(200).json({status:"OK"})
           }
           else{
             res.status(401).json({status:"error", error:"INCORRECT USERNAME OR PASSWORD"})
@@ -233,6 +233,7 @@ var transporter = nodemailer.createTransport({
 app.delete('/item/:id', (req, res)=>{
   if(req.session.userId)
   db.Tweet.find({_id: req.params.id}).then((data)=>{
+    console.log(data);
     if(data.length === 0){
       res.status(500).json({status:"error"});
     }
@@ -240,7 +241,7 @@ app.delete('/item/:id', (req, res)=>{
     if(req.session.username !== data[0].username){
       res.status(500).json({status:"error"});}
       else{
-        let query = "DELETE FROM tweeter WHERE id = ?"
+        let query = "DELETE FROM tweeter WHERE id ?"
         for(let i = 0; i <data[0].media.length; i++){
           client.execute(query, [data[0].media[i]]).then((err)=>{
             if(err)
