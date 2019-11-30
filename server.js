@@ -201,17 +201,12 @@ var transporter = nodemailer.createTransport({
     if(req.body.q != "" && req.body.q != undefined){
       let q = escapeRegExp(req.body.q);
       query.content = { "$regex": q.split(" ").join("|"), "$options": "i" }}
-    if(req.body.parent){
-      if(req.body.replies == false){
-        query.childType = {$ne: "reply"}
-      }
-      else{
-        query.parent = req.body.parent
-      }
-      query.childType
-    }
     if(req.body.replies == false){
       query.childType = {$ne: "reply"}
+    }
+    else{
+      if(req.body.parent)
+        query.parent = req.body.parent
     }
     if(req.body.username)
       query.username = req.body.username;
@@ -229,7 +224,7 @@ var transporter = nodemailer.createTransport({
       query.author = {$in: data[0].following}
       db.Tweet.find(query).where('username').ne(req.session.username).limit(limit).sort(ranking).lean().then((data)=>{
         if(data){
-          res.json({status:"OK", items:data});}
+          res.json({status:"OK followers", items:data});}
             });
     })
     });
