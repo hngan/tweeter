@@ -292,7 +292,7 @@ app.get('/user/:username/followers', (req, res)=>{
   let limit = parseInt(req.query.limit) || 50
   limit = limit > 200 ? 200 : limit
   db.User.find({username:req.params.username}).populate({path:'followers',  options: {
-    limit: limit}}).then((data)=>{
+    limit: limit}}).lean().then((data)=>{
     if(data.length > 0){
       let followers = [];
       data[0].followers.forEach(follower => {
@@ -307,7 +307,7 @@ app.get('/user/:username/following', (req, res)=>{
   let limit = parseInt(req.query.limit) || 50
   limit = limit > 200 ? 200 : limit
   db.User.find({username:req.params.username}).populate({path:'following',  options: {
-    limit: limit}}).then((data)=>{
+    limit: limit}}).lean().then((data)=>{
     if(data.length > 0){
       let followings = [];
       data[0].following.forEach(following => {
