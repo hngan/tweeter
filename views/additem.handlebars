@@ -26,7 +26,7 @@
   
     <div><button id = "additem">Add Item</button></div>
 <script>
-("#addMedia").on("click",function(event){
+$("#addMedia").on("click",function(event){
 	console.log("IM HERE")
     let formData = new FormData(document.getElementById("addFile"));
     $.ajax({
@@ -51,7 +51,7 @@
 	}
     });
 });
-("#additem").on("click",function(event){
+$("#additem").on("click",function(event){
     let childType = $("#childType").val();
     if (childType == "") {
 	childType = null;
