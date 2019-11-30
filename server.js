@@ -7,7 +7,6 @@ const fs = require('fs');
 const exphbs = require('express-handlebars');
 const cassandra =  require('cassandra-driver');
 const formidable = require('formidable');
-const Memcached = require('memcached');
 const MemcachedStore = require("connect-memcached")(session);
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -34,8 +33,6 @@ app.set("view engine", "handlebars");
 
 const client = new cassandra.Client({contactPoints:['127.0.0.1'], localDataCenter: 'datacenter1',keyspace:"hw6"});
 mongoose.connect("mongodb://localhost/tweeter", { useNewUrlParser: true });
-
-var memcached = new Memcached('localhost:11211');
 
 var transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -118,7 +115,6 @@ var transporter = nodemailer.createTransport({
     if(req.session.userId){
        req.body.author = req.session.userId;
        req.body.username = req.session.username;
-	console.log(req.body);
        if(req.body.content){
          let query = "SELECT id, user, parent from tweeter WHERE id IN ?"
         if(req.body.media)
@@ -166,7 +162,6 @@ var transporter = nodemailer.createTransport({
             else
             db.Tweet.create(req.body).then((tweet) =>{
               let id = tweet._id;
-		console.log("IT WORKS HERE?");
               db.User.findOneAndUpdate({username:req.session.username},{ $push: {tweets: id} }, { new: true }).then((resp)=>{
                 if(req.body.childType === "reply")
                 db.Tweet.findOneAndUpdate({_id:req.body.parent},{$push:{replies:id}}, { new: true }).then((resp)=>{res.status(200).json({status:"OK", id:tweet._id});});
@@ -442,12 +437,6 @@ res.status(500).json({status:"error"})
 });
 
 app.get("/media/:id", (req, res)=>{
-  let key = req.params.id
-  memcached.gets(key, function (err, data) {
-  if(data){
-	console.log("WOO");
-  res.contentType(data[key].type).status(200).send(data[key].image);}
-  else{
   let query = 'SELECT content, type from tweeter WHERE id = ?';
     let params = [req.params.id];
     client.execute(query, params)
@@ -455,17 +444,11 @@ app.get("/media/:id", (req, res)=>{
         if(result.rowLength > 0){
         let image = result.rows[0].content;
         let obj = {type: result.rows[0].type, image: image}
-        memcached.set(key, obj, 10, function(err){
-	if(err)
-	console.log(err);
-          res.contentType(result.rows[0].type).status(200).send(image);
-        })
-        
+        res.contentType(result.rows[0].type).status(200).send(image); 
     }
     else
       res.status(400).json({status:"ERROR", msg:"Media not found"});
-    });}
-  });
+    });
 });
 
 
