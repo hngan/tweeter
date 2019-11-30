@@ -37,7 +37,7 @@ mongoose.connect("mongodb://localhost/tweeter", { useNewUrlParser: true });
 var transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-       user: 'hnganMailingService356@gmail.com',
+       user: 'hnganMailingService3562@gmail.com',
        pass: 'Cse356iscool'
     }
   });
