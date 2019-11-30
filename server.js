@@ -418,7 +418,7 @@ app.post("/addmedia", (req, res)=>{
   if(req.session.userId){
   new formidable.IncomingForm().parse(req, (err, fields, files) => {
     if (err) {
-      console.error('Error', err)
+      console.error('Errorz', err)
       throw err
     }
     let query = 'INSERT INTO tweeter (id, filename, content, type, user, parent) VALUES (?, ?, ?, ?, ?, ?)';
