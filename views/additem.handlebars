@@ -12,7 +12,7 @@
       <input type="text" id="parent">
 
     <div>
-    <form method="POST" id="addFile" enctype="multipart/form-data">
+    <form id="addFile" enctype="multipart/form-data">
 	<h4>Add Media</h4>
 	<input type="file" name="content">
 	<button id ="addMedia">Add Media</button>
@@ -20,14 +20,13 @@
     </div>
     <div>
       <h4>Uploaded Media</h4>
-      <div id="uploaded_media" name="content"></div>
+      <div id="mediaIds" name="content"></div>
       <input type="hidden" value="" id="mediaList">
     </div>
   
     <div><button id = "additem">Add Item</button></div>
 <script>
 $("#addMedia").on("click",function(event){
-	console.log("IM HERE")
     let formData = new FormData(document.getElementById("addFile"));
     $.ajax({
 	type: "POST",
@@ -37,7 +36,7 @@ $("#addMedia").on("click",function(event){
 	contentType: false,
 	success: function(result) {
 	    if (result.status === "OK") {
-		document.getElementById("uploaded_media").innerHTML += "<br>" + result.id;
+		document.getElementById("mediaIds").innerHTML += "<br>" + result.id;
 		if (document.getElementById("mediaList").value == "") {
 		    document.getElementById("mediaList").value = result.id;
 		}
