@@ -92,9 +92,9 @@ var transporter = nodemailer.createTransport({
          else{
           let user = resp[0];
           if(user.password === password && user.verified){
-            res.status(200).json({status:"OK"})
             req.session.userId = user._id;
             req.session.username = user.username
+		res.status(200).json({status:"OK"})
           }
           else{
             res.status(401).json({status:"error", error:"INCORRECT USERNAME OR PASSWORD"})
@@ -432,8 +432,9 @@ app.post("/addmedia", (req, res)=>{
     res.status(200).json({status:"OK", id: id});
   })
 }
-else
-res.status(500).json({status:"error"})
+else{
+console.log(":(")
+res.status(500).json({status:"error"})}
 });
 
 app.get("/media/:id", (req, res)=>{
