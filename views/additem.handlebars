@@ -56,10 +56,7 @@ $("#additem").on("click",function(event){
     if (childType == "") {
 	childType = null;
     }
-    let parent = $("#parent").val();
-    if (parent == "") {
-	parent = null;
-    }
+    let parent = $("#parent").val().length > 8 ? $("#parent").val() : null;
     let mediaList = $("#mediaList").val();
     if (mediaList == "") {
 	mediaList = null;
