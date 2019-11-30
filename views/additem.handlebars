@@ -1,6 +1,6 @@
 <h1>Add Tweet</h1>
       <label for="content">Content: </label>
-      <textarea form="addform" id="content"></textarea>
+      <textarea id="content"></textarea>
       <div>
 	<select name="childType" id="childType">
 	  <option value="">Null</option>
@@ -27,6 +27,7 @@
     <div><button id = "additem">Add Item</button></div>
 <script>
 $("#addMedia").on("click",function(event){
+	event.preventDefault();
     let formData = new FormData(document.getElementById("addFile"));
     $.ajax({
 	type: "POST",
@@ -66,18 +67,8 @@ $("#additem").on("click",function(event){
     else {
 	mediaList = mediaList.split(",");
     }
-   $.ajax({
-	"method": "POST",
-	"route": "/additem/",
-	"response_function": function(request) {
-	    console.log(request);
-	},
-	"request_data": {
-	    "content": $("#content").val(),
-	    "childType": childType,
-	    "parent": parent,
-	    "media": mediaList,
-	}
-    })
+   $.post("/additem",{content:$("#content").val(), childType:childType, media: mediaList, parent: parent}).then(resp=>{
+	   console.log(resp);
+   })
 });
 </script>
