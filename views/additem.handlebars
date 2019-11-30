@@ -1,6 +1,4 @@
 <h1>Add Tweet</h1>
-
-    <form >
       <label for="content">Content: </label>
       <textarea form="addform" id="content"></textarea>
       <div>
@@ -12,13 +10,12 @@
       </div>
       <label for="parent">Parent: </label>
       <input type="text" id="parent">
-    </form>
 
     <div>
     <form method="POST" id="addFile" enctype="multipart/form-data">
 	<h4>Add Media</h4>
 	<input type="file" name="content" id="add_file">
-	<button id = "addMedia">Add Media</button>
+	<button id ="addMedia">Add Media</button>
       </form>
     </div>
     <div>
@@ -29,7 +26,32 @@
   
     <div><button id = "additem">Add Item</button></div>
 <script>
-("#additem").on("click",function() {
+("#addMedia").on("click",function(event){
+    let formData = new FormData(document.getElementById("addFile"));
+    $.ajax({
+	type: "POST",
+	url: "/addmedia/",
+	data: formData,
+	processData: false,
+	contentType: false,
+	success: function(result) {
+	    if (result.status === "OK") {
+		document.getElementById("uploaded_media").innerHTML += "<br>" + result.id;
+		if (document.getElementById("media_list").value == "") {
+		    document.getElementById("media_list").value = result.id;
+		}
+		else {
+		    document.getElementById("media_list").value += "," + result.id;
+		}
+	    }
+	    else {
+		console.log("Upload failed - Error: " + result.error);
+	    }
+	}
+    });
+}
+)
+("#additem").on("click",function(event){
     let childType = $("#childType").val();
     if (childType == "") {
 	childType = null;
@@ -59,30 +81,4 @@
 	}
     })
 };)
-
-("#addMedia").on("click",function() {
-    let formData = new FormData(document.getElementById("addFile"));
-    $.ajax({
-	type: "POST",
-	url: "/addmedia/",
-	data: formData,
-	processData: false,
-	contentType: false,
-	success: function(result) {
-	    if (result.status === "OK") {
-		document.getElementById("uploaded_media").innerHTML += "<br>" + result.id;
-		if (document.getElementById("media_list").value == "") {
-		    document.getElementById("media_list").value = result.id;
-		}
-		else {
-		    document.getElementById("media_list").value += "," + result.id;
-		}
-	    }
-	    else {
-		console.log("Upload failed - Error: " + result.error);
-	    }
-	}
-    });
-}
-)
 </script>
