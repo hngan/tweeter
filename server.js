@@ -34,6 +34,8 @@ app.set("view engine", "handlebars");
 const client = new cassandra.Client({contactPoints:['127.0.0.1'], localDataCenter: 'datacenter1',keyspace:"hw6"});
 mongoose.connect("mongodb://localhost/tweeter", { useNewUrlParser: true });
 
+var memcached = new Memcached('localhost:11211');
+
 var transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -437,17 +439,27 @@ res.status(500).json({status:"error"})
 });
 
 app.get("/media/:id", (req, res)=>{
+  let key = req.params.id
+  memcached.gets(key, function (err, data) {
+  if(data)
+  res.contentType(data[key].type).status(200).send(data[key].image);
+  else{
   let query = 'SELECT content, type from tweeter WHERE id = ?';
     let params = [req.params.id];
     client.execute(query, params)
     .then(result => {
         if(result.rowLength > 0){
         let image = result.rows[0].content;
-        res.contentType(result.rows[0].type).status(200).send(image);
+        let obj = {type: results.rows[0].type, image: image}
+        memcached.set(key, obj, 10, function(err){
+          res.contentType(result.rows[0].type).status(200).send(image);
+        })
+        
     }
     else
-      res.status(400).json({status:"ERROR", msg:"Media not found"})
-    ;});
+      res.status(400).json({status:"ERROR", msg:"Media not found"});
+    });}
+  });
 });
 
 
