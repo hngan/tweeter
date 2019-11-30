@@ -53,9 +53,9 @@ $("#addMedia").on("click",function(event){
 });
 $("#additem").on("click",function(event){
 	let obj ={content:$("#content").val()}
-	obj.media = $("#mediaList").val().length > 1 ? $("#mediaList").val().split(",") : null;
-	obj.childType = $("#childType").val().length > 1 ? $("#childType").val() : null;
-	obj.parent = $("#parent").val().length > 8 ? $("#parent").val() : null;
+	$("#mediaList").val().length > 1 ? obj.media = $("#mediaList").val().split(",") : null;
+	$("#childType").val().length > 1 ? obj.childType = $("#childType").val() : null;
+	$("#parent").val().length > 8 ? obj.parent = $("#parent").val() : null;
 	console.log(obj)
    $.post("/additem", obj).then(resp=>{
 	   console.log(resp);
