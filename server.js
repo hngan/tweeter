@@ -444,8 +444,9 @@ res.status(500).json({status:"error"})
 app.get("/media/:id", (req, res)=>{
   let key = req.params.id
   memcached.gets(key, function (err, data) {
-  if(data)
-  res.contentType(data[key].type).status(200).send(data[key].image);
+  if(data){
+	console.log("WOO");
+  res.contentType(data[key].type).status(200).send(data[key].image);}
   else{
   let query = 'SELECT content, type from tweeter WHERE id = ?';
     let params = [req.params.id];
@@ -453,8 +454,10 @@ app.get("/media/:id", (req, res)=>{
     .then(result => {
         if(result.rowLength > 0){
         let image = result.rows[0].content;
-        let obj = {type: results.rows[0].type, image: image}
+        let obj = {type: result.rows[0].type, image: image}
         memcached.set(key, obj, 10, function(err){
+	if(err)
+	console.log(err);
           res.contentType(result.rows[0].type).status(200).send(image);
         })
         
