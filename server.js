@@ -232,7 +232,7 @@ var transporter = nodemailer.createTransport({
 //MILESTONE 2 STUFF
 app.delete('/item/:id', (req, res)=>{
   if(req.session.userId)
-  db.Tweet.find({_id: req.params.id}).then((data)=>{
+  db.Tweet.find({_id: req.params.id}).lean().then((data)=>{
     if(data.length === 0){
       res.status(500).json({status:"error"});
     }
@@ -240,8 +240,8 @@ app.delete('/item/:id', (req, res)=>{
     if(req.session.username !== data[0].username){
       res.status(500).json({status:"error"});}
       else{
-        let query = "DELETE FROM tweeter WHERE id ?"
-        for(let i = 0; i <data[0].media.length; i++){
+        let query = "DELETE FROM tweeter WHERE id = ?";
+ for(let i = 0; i < data[0].media.length; i++){
           client.execute(query, [data[0].media[i]]).then((err)=>{
             if(err)
             console.log(err)
