@@ -187,6 +187,10 @@ var transporter = nodemailer.createTransport({
         })
  });
  
+ function escapeRegExp(string) {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+}
+
  app.post('/search', (req, res)=>{
     let limit = req.body.limit ? parseInt(req.body.limit) : 25;
     let time = req.body.timestamp ? parseInt(req.body.timestamp) : Date.now()/1000;
@@ -194,8 +198,9 @@ var transporter = nodemailer.createTransport({
     let ranking = req.body.rank === "time" ? {"timestamp":-1} : {"interest": -1} //ORDER BY INTEREST OR TIME
     if(req.body.hasMedia)
       query["media.0"] = { "$exists": true }
-    if(req.body.q != "" && req.body.q != undefined)
-      query.content = { "$regex": req.body.q.split(" ").join("|"), "$options": "i" }
+    if(req.body.q != "" && req.body.q != undefined){
+      let q = escapeRegExp(req.body.q);
+      query.content = { "$regex": q.split(" ").join("|"), "$options": "i" }}
     if(req.body.parent){
       if(req.body.replies == false){
         query.childType = {$ne: "reply"}
@@ -231,6 +236,7 @@ var transporter = nodemailer.createTransport({
 
 //MILESTONE 2 STUFF
 app.delete('/item/:id', (req, res)=>{
+  console.log("DOING A DELETE")
   if(req.session.userId)
   db.Tweet.find({_id: req.params.id}).lean().then((data)=>{
     if(data.length === 0){
@@ -241,7 +247,8 @@ app.delete('/item/:id', (req, res)=>{
       res.status(500).json({status:"error"});}
       else{
         let query = "DELETE FROM tweeter WHERE id = ?";
- for(let i = 0; i < data[0].media.length; i++){
+      if(data[0].media)
+      for(let i = 0; i < data[0].media.length; i++){
           client.execute(query, [data[0].media[i]]).then((err)=>{
             if(err)
             console.log(err)
