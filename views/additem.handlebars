@@ -14,7 +14,7 @@
     <div>
     <form method="POST" id="addFile" enctype="multipart/form-data">
 	<h4>Add Media</h4>
-	<input type="file" name="content" id="add_file">
+	<input type="file" name="content">
 	<button id ="addMedia">Add Media</button>
       </form>
     </div>
@@ -27,6 +27,7 @@
     <div><button id = "additem">Add Item</button></div>
 <script>
 ("#addMedia").on("click",function(event){
+	console.log("IM HERE")
     let formData = new FormData(document.getElementById("addFile"));
     $.ajax({
 	type: "POST",
@@ -49,8 +50,7 @@
 	    }
 	}
     });
-}
-)
+});
 ("#additem").on("click",function(event){
     let childType = $("#childType").val();
     if (childType == "") {
@@ -80,5 +80,5 @@
 	    "media": mediaList,
 	}
     })
-};)
+});
 </script>
