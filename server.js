@@ -233,7 +233,6 @@ var transporter = nodemailer.createTransport({
 app.delete('/item/:id', (req, res)=>{
   if(req.session.userId)
   db.Tweet.find({_id: req.params.id}).then((data)=>{
-    console.log(data);
     if(data.length === 0){
       res.status(500).json({status:"error"});
     }
