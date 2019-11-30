@@ -115,9 +115,10 @@ var transporter = nodemailer.createTransport({
     });
  
  app.post('/additem', (req, res)=>{
-     if(req.session.userId){
+    if(req.session.userId){
        req.body.author = req.session.userId;
        req.body.username = req.session.username;
+	console.log(req.body);
        if(req.body.content){
          let query = "SELECT id, user, parent from tweeter WHERE id IN ?"
         if(req.body.media)
@@ -165,6 +166,7 @@ var transporter = nodemailer.createTransport({
             else
             db.Tweet.create(req.body).then((tweet) =>{
               let id = tweet._id;
+		console.log("IT WORKS HERE?");
               db.User.findOneAndUpdate({username:req.session.username},{ $push: {tweets: id} }, { new: true }).then((resp)=>{
                 if(req.body.childType === "reply")
                 db.Tweet.findOneAndUpdate({_id:req.body.parent},{$push:{replies:id}}, { new: true }).then((resp)=>{res.status(200).json({status:"OK", id:tweet._id});});
