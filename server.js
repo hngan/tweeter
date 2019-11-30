@@ -211,6 +211,7 @@ var transporter = nodemailer.createTransport({
     if(req.body.username)
       query.username = req.body.username;
     //general search
+	console.log(query);
     if(req.body.following === false || req.body.following ==="false"){
       db.Tweet.find(query).limit(limit).sort(ranking).lean().then((data)=>{
         if(data)
