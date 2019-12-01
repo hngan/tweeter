@@ -17,8 +17,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "cassandra-driver": "^4.3.1",
+    "connect-memcached": "^1.0.0",
     "express": "^4.17.1",
+    "express-handlebars": "^3.1.0",
     "express-session": "^1.17.0",
+    "formidable": "^1.2.1",
     "mongoose": "^5.7.5",
     "nodemailer": "^6.3.1"
   }
