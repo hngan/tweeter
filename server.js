@@ -485,7 +485,7 @@ amqp.connect('amqp://localhost', function(error, connection) {
         channel.prefetch(1);
         console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", queue);
         channel.consume(queue, function(params) {
-          params = params.content;
+          params = JSON.parse(params.content);
           console.log("PARAMS:",params)
           let query = 'INSERT INTO tweeter (id, filename, content, type, user, parent) VALUES (?, ?, ?, ?, ?, ?)';
           client.execute(query, params, { prepare: true })
