@@ -24,7 +24,8 @@ const UserSchema = new Schema({
     },
     tweets: [{ type: Schema.Types.ObjectId, ref: 'Tweet' }],
     followers:[{type: Schema.Types.ObjectId, ref:'User'}],
-    following:[{type: Schema.Types.ObjectId, ref:'User'}]
+    following:[{type: Schema.Types.ObjectId, ref:'User'}],
+    media:{type: Object}
 },{strict: false});
 
 const User = mongoose.model("User", UserSchema);

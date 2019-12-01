@@ -117,7 +117,6 @@ var transporter = nodemailer.createTransport({
        req.body.author = req.session.userId;
        req.body.username = req.session.username;
        if(req.body.content){
-         let query = "SELECT id, user, parent from tweeter WHERE id IN ?"
         if(req.body.media)
           db.User.find({_id:req.session.userId}).lean().then(data=>{
             for(let i = 0; i < req.body.media.length; i++){
@@ -435,8 +434,15 @@ app.post("/addmedia", (req, res)=>{
     var id = file.name+String(Date.now())
     let params = [id, name , imgfile, type,req.session.username, ""]
     client.execute(query, params, { prepare: true })
-    .then(result => {});
-    res.status(200).json({status:"OK", id: id});
+    .then(result => {
+      db.User.find({_id: req.session.userId}).lean().then(data=>{
+        let medias = data[0].media;
+        medias[id] = false;
+        db.User.update({_id:req.session.userId},{media:medias}).then((data)=>{
+          res.status(200).json({status:"OK", id: id});
+        })
+      })
+    });
   })
 }
 else{
