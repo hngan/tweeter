@@ -35,7 +35,7 @@ app.engine("handlebars", exphbs({ defaultLayout: "main" }));
 app.set("view engine", "handlebars");
 
 const client = new cassandra.Client({contactPoints:['127.0.0.1'], localDataCenter: 'datacenter1',keyspace:"hw6"});
-mongoose.connect("mongodb://localhost/tweeter", { useNewUrlParser: true });
+mongoose.connect("mongodb://130.245.171.151/tweeter", { useNewUrlParser: true });
 
 var transporter = nodemailer.createTransport({
      port: 25,
