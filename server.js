@@ -135,8 +135,7 @@ var transporter = nodemailer.createTransport({
             for(let i = 0; i < req.body.media.length; i++){
               medias[req.body.media[i]] = true;
             }
-            db.User.update({_id:req.session.id},{media:medias}).then(()=>{})
-          })
+            db.User.update({_id:req.session.id},{media:medias}).then((data)=>{})
           // client.execute(query, [req.body.media]).then((result)=>{
           //   if(result.rowLength > 0){
           //     for(let i = 0; i <  result.rowLength; i++){
@@ -169,7 +168,6 @@ var transporter = nodemailer.createTransport({
                 res.status(200).json({status:"OK", id:id});
               })
           })
-          }
           });
         //no media
         else
