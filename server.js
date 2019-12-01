@@ -35,7 +35,7 @@ const client = new cassandra.Client({contactPoints:['127.0.0.1'], localDataCente
 mongoose.connect("mongodb://localhost/tweeter", { useNewUrlParser: true });
 
 var transporter = nodemailer.createTransport({
-    port: 25,
+     port: 25,
     host: 'localhost',
     tls: {
       rejectUnauthorized: false
@@ -47,7 +47,6 @@ var transporter = nodemailer.createTransport({
       if(resp.length === 0){
         db.User.find({email:req.body.email}).then((data) =>{
          if(data.length === 0){
-        req.body.media = {}
          db.User.create(req.body).then((dbmodel)=>{
            const message = {
              from: 'hnganMailingService356@gmail.com',
@@ -117,24 +116,21 @@ var transporter = nodemailer.createTransport({
        req.body.author = req.session.userId;
        req.body.username = req.session.username;
        if(req.body.content){
+         let query = "SELECT id, user, parent from tweeter WHERE id IN ?"
         if(req.body.media)
-          db.User.find({_id:req.session.userId}).lean().then(data=>{
-            for(let i = 0; i < req.body.media.length; i++){
-              if(req.body.media[i] in data[0].media){
-                if(data[0].media[req.body.media[i]]){
-                res.status(500).json({status:"error", error:"Bad media"})
-                return;}
-              }
-              else{
-                res.status(500).json({status:"error", error:"Bad media"})
-                return;
-              }
+          client.execute(query, [req.body.media]).then((result)=>{
+            if(result.rowLength > 0){
+              for(let i = 0; i <  result.rowLength; i++){
+              let user = result.rows[i].user;
+              let parent = result.rows[i].parent;
+              if(parent !== "" || user !== req.session.username){
+              res.status(500).json({status:"error", error:"Bad media"})
+              return;}
             }
-            let medias = data[0].media;
-            for(let i = 0; i < req.body.media.length; i++){
-              medias[req.body.media[i]] = true;
+            for(let i = 0; i < result.rowLength; i++){
+              client.execute("UPDATE tweeter SET parent = ? WHERE id = ?", ["TAKEN",result.rows[i].id]).then((result)=>{
+              })
             }
-            db.User.update({_id:req.session.userId},{media:medias}).then((data)=>{})
             if(req.body.childType === "retweet")
             db.Tweet.find({_id:req.body.parent}).then(parent =>{
               req.body.content = parent[0].content
@@ -152,6 +148,7 @@ var transporter = nodemailer.createTransport({
                 res.status(200).json({status:"OK", id:id});
               })
           })
+          }
           });
         //no media
         else
@@ -434,15 +431,8 @@ app.post("/addmedia", (req, res)=>{
     var id = file.name+String(Date.now())
     let params = [id, name , imgfile, type,req.session.username, ""]
     client.execute(query, params, { prepare: true })
-    .then(result => {
-      db.User.find({_id: req.session.userId}).lean().then(data=>{
-        let medias = data[0].media;
-        medias[id] = false;
-        db.User.update({_id:req.session.userId},{media:medias}).then((data)=>{
-          res.status(200).json({status:"OK", id: id});
-        })
-      })
-    });
+    .then(result => {});
+    res.status(200).json({status:"OK", id: id});
   })
 }
 else{
@@ -462,114 +452,4 @@ app.get("/media/:id", (req, res)=>{
     else
       res.status(400).json({status:"ERROR", msg:"Media not found"});
     });
-});
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//UI STUFF
-app.get("/",(req, res)=>{
-  res.render("index");
-})
-
-app.get("/login",(req, res)=>{
-  res.render("login")
-});
-
-app.get("/register",(req, res)=>{
-  res.render("signup")
-});
-
-app.get("/verify",(req, res)=>{
-  res.render("verify")
-});
-
-app.get("/additem",(req, res)=>{
-  res.render("additem")
-});
-
-app.get("/searchpage",(req, res)=>{
-  if(req.session.id){
-    res.render("ssearch")
-  }
-  else
-    res.render("search")
-});
-
-app.get("/getuser",(req, res)=>{
-  res.render("user")
-});
-
-app.get("/getuserfollowers",(req, res)=>{
-  res.render("followers")
-});
-
-app.get("/getuserposts",(req, res)=>{
-  res.render("posts")
-});
-
-app.get("/getuserfollowing",(req, res)=>{
- res.render("following");
-});
-
-app.get("/getitem",(req, res)=>{
-  res.render("getitem")
-});
-
-app.get("/getmedia",(req, res)=>{
-  res.render("getmedia");
-});
-
-app.get("/likeuser",(req, res)=>{
-  res.render("like")
-});
-
-app.get("/deleteitem",(req, res)=>{
-  res.render("delete")
-});
-
-app.get("/follow",(req, res)=>{
-  res.render("follow");
-})
-// Start the API server
-app.listen(PORT, function() {
-  console.log(`API Server now listening on PORT ${PORT}!`);
 });
