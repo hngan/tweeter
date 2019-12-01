@@ -425,15 +425,12 @@ app.post("/addmedia", (req, res)=>{
       throw err
     }
     
-    let file = files.content;
-    let type = file.type;
-    let name = file.name;
-    var img = fs.readFileSync(file.path);
-    var encode_image = img.toString('base64');
-    var imgfile =new Buffer(encode_image, 'base64');
+    let file =  JSON.parse(JSON.stringify(files.content))
+   
     var id = file.name+String(Date.now())
-    let params = [id, name , imgfile, type,req.session.username, ""]
-
+    file.idds = id;
+    file.user = req.session.username;
+    console.log(file);
     amqp.connect('amqp://localhost', function(error0, connection) {
     if (error0) {
         throw error0;
@@ -442,11 +439,11 @@ app.post("/addmedia", (req, res)=>{
         if (error1) {
             throw error1;
         }
-        var queue = 'cassandra_queue';
+        var queue = 'cassandra_queues';
         channel.assertQueue(queue, {
             durable: true
         });
-        channel.sendToQueue(queue, Buffer.from(JSON.stringify(params)), {
+        channel.sendToQueue(queue, Buffer.from(JSON.stringify(file)), {
             persistent: true
         });
     });
@@ -477,19 +474,25 @@ app.get("/media/:id", (req, res)=>{
 
 amqp.connect('amqp://localhost', function(error, connection) {
     connection.createChannel(function(error, channel) {
-        var queue = 'cassandra_queue';
-
+        var queue = 'cassandra_queues';
         channel.assertQueue(queue, {
             durable: true
         });
         channel.prefetch(1);
         console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", queue);
-        channel.consume(queue, function(params) {
-          console.log("PARAMS:",JSON.parse(params.content))
+        channel.consume(queue, function(files) {
+          file = JSON.parse(files.content.toString())
+          let type = file.type;
+          let name = file.name;
+          var img = fs.readFileSync(file.path);
+          var encode_image = img.toString('base64');
+          var imgfile =new Buffer(encode_image, 'base64');
+          var id = file.idds
           let query = 'INSERT INTO tweeter (id, filename, content, type, user, parent) VALUES (?, ?, ?, ?, ?, ?)';
+          let params = [id, name , imgfile, type, file.user, ""]
           client.execute(query, params, { prepare: true })
           .then(result => {
-            channel.ack(msg);
+            channel.ack(files);
           });
         }, {
             noAck: false
@@ -605,3 +608,4 @@ app.get("/follow",(req, res)=>{
 app.listen(PORT, function() {
   console.log(`API Server now listening on PORT ${PORT}!`);
 });
+
