@@ -8,6 +8,7 @@ const exphbs = require('express-handlebars');
 const cassandra =  require('cassandra-driver');
 const formidable = require('formidable');
 const MemcachedStore = require("connect-memcached")(session);
+const amqp = require('amqplib/callback_api');
 const app = express();
 const PORT = process.env.PORT || 3000;
  
@@ -27,6 +28,8 @@ app.use(session({
     })
 }));
 
+amqp.connect('amqp://localhost', function(error0, connection) {});
+
 app.use(express.static(__dirname+'/public'));
 app.engine("handlebars", exphbs({ defaultLayout: "main" }));
 app.set("view engine", "handlebars");
@@ -43,7 +46,7 @@ var transporter = nodemailer.createTransport({
   });
 
   app.post("/adduser", (req, res) => {
-    db.User.find({username:req.body.username}, (err,resp) => {
+    db.User.find({username:req.body.username}).lean().then((resp) => {
       if(resp.length === 0){
         db.User.find({email:req.body.email}).then((data) =>{
          if(data.length === 0){
@@ -86,7 +89,7 @@ var transporter = nodemailer.createTransport({
       app.post("/login", (req, res) => {
         var username = req.body.username;
         var password = req.body.password;
-        db.User.find({username:username}, (err,resp) =>{
+        db.User.find({username:username}).lean().then((resp) =>{
           if (resp.length === 0)
          res.status(401).json({status:"error", error:"INCORRECT USERNAME OR PASSWORD"});
          else{
@@ -94,7 +97,7 @@ var transporter = nodemailer.createTransport({
           if(user.password === password && user.verified){
             req.session.userId = user._id;
             req.session.username = user.username
-		res.status(200).json({status:"OK"})
+		        res.status(200).json({status:"OK"})
           }
           else{
             res.status(401).json({status:"error", error:"INCORRECT USERNAME OR PASSWORD"})
@@ -430,13 +433,31 @@ app.post("/addmedia", (req, res)=>{
     var imgfile =new Buffer(encode_image, 'base64');
     var id = file.name+String(Date.now())
     let params = [id, name , imgfile, type,req.session.username, ""]
-    client.execute(query, params, { prepare: true })
-    .then(result => {});
+
+    amqp.connect('amqp://localhost', function(error0, connection) {
+    if (error0) {
+        throw error0;
+    }
+   let meow = async function(){connection.createChannel(function(error1, channel) {
+        if (error1) {
+            throw error1;
+        }
+        var queue = 'cassandra_queue';
+        channel.assertQueue(queue, {
+            durable: true
+        });
+        channel.sendToQueue(queue, Buffer.from(params), {
+            persistent: true
+        });
+        console.log(" [x] Sent '%s'", msg);
+    });}
+    await meow();
+    connection.end()
+});
     res.status(200).json({status:"OK", id: id});
   })
 }
 else{
-console.log(":(")
 res.status(500).json({status:"error"})}
 });
 
@@ -454,6 +475,25 @@ app.get("/media/:id", (req, res)=>{
     });
 });
 
+amqp.connect('amqp://localhost', function(error, connection) {
+    connection.createChannel(function(error, channel) {
+        var queue = 'cassandra_queue';
+
+        channel.assertQueue(queue, {
+            durable: true
+        });
+        channel.prefetch(1);
+        console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", queue);
+        channel.consume(queue, function(query) {
+          client.execute(query, params, { prepare: true })
+          .then(result => {
+            channel.ack(msg);
+          });
+        }, {
+            noAck: false
+        });
+    });
+});
 
 
 
