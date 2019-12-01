@@ -424,7 +424,7 @@ app.post("/addmedia", (req, res)=>{
       console.error('Error', err)
       throw err
     }
-    let query = 'INSERT INTO tweeter (id, filename, content, type, user, parent) VALUES (?, ?, ?, ?, ?, ?)';
+    
     let file = files.content;
     let type = file.type;
     let name = file.name;
@@ -484,7 +484,9 @@ amqp.connect('amqp://localhost', function(error, connection) {
         });
         channel.prefetch(1);
         console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", queue);
-        channel.consume(queue, function(query) {
+        channel.consume(queue, function(params) {
+          console.log(params)
+          let query = 'INSERT INTO tweeter (id, filename, content, type, user, parent) VALUES (?, ?, ?, ?, ?, ?)';
           client.execute(query, params, { prepare: true })
           .then(result => {
             channel.ack(msg);
