@@ -432,7 +432,7 @@ app.post("/addmedia", (req, res)=>{
     var encode_image = img.toString('base64');
     var imgfile =new Buffer(encode_image, 'base64');
     var id = file.name+String(Date.now())
-    let params = {id: id, name: name , imgfile:imgfile, type:type,user:req.session.username, parent:""}
+    let params = [id, name , imgfile, type,req.session.username, ""]
 
     amqp.connect('amqp://localhost', function(error0, connection) {
     if (error0) {
@@ -446,7 +446,7 @@ app.post("/addmedia", (req, res)=>{
         channel.assertQueue(queue, {
             durable: true
         });
-        channel.sendToQueue(queue, Buffer.from(params), {
+        channel.sendToQueue(queue, Buffer.from(JSON.stringify(params)), {
             persistent: true
         });
     });
@@ -485,8 +485,7 @@ amqp.connect('amqp://localhost', function(error, connection) {
         channel.prefetch(1);
         console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", queue);
         channel.consume(queue, function(params) {
-          params = params.content.toJSON()
-          console.log("PARAMS:",params)
+          console.log("PARAMS:",JSON.parse(params.content))
           let query = 'INSERT INTO tweeter (id, filename, content, type, user, parent) VALUES (?, ?, ?, ?, ?, ?)';
           client.execute(query, params, { prepare: true })
           .then(result => {
