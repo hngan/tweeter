@@ -6,7 +6,7 @@ CREATE KEYSPACE hw6
    'class' : 'NetworkTopologyStrategy', 
    'datacenter1' : 1 
   } ;
-  
+
 CREATE TABLE tweeter ( 
   id text PRIMARY KEY, 
   filename text, 
@@ -23,3 +23,5 @@ https://stackoverflow.com/questions/32264946/sending-email-from-local-host-with-
 https://tecadmin.net/install-rabbitmq-server-on-ubuntu/
 
 CONFIGURE POSTFIX AND MEMCACHE
+POSTFIX FILE: /etc/postfix/main.cf
+MEMCACHE FILE: /etc/memcached.conf

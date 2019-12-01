@@ -23,7 +23,7 @@ app.use(session({
     cookie: { secure: false,
     sameSite:true },
     store: new MemcachedStore({
-      hosts: ["130.245.171.151:11211", "130.245.171.156:11211", "130.245.171.157:11211", "130.245.171.160:11211"],
+      hosts: ["130.245.171.151:11211", "130.245.171.156:11211", "130.245.171.157:11211", "130.245.171.160:11211","130.245.171.161:11211"],
       secret: "KWUPPYCAT" // Optionally use transparent encryption for memcache session data
     })
 }));
@@ -35,7 +35,7 @@ app.engine("handlebars", exphbs({ defaultLayout: "main" }));
 app.set("view engine", "handlebars");
 
 const client = new cassandra.Client({contactPoints:['127.0.0.1'], localDataCenter: 'datacenter1',keyspace:"hw6"});
-mongoose.connect("mongodb://130.245.171.151/tweeter", { useNewUrlParser: true });
+mongoose.connect("mongodb://130.245.171.156/tweeter", { useNewUrlParser: true });
 
 var transporter = nodemailer.createTransport({
      port: 25,
