@@ -23,7 +23,7 @@ app.use(session({
     cookie: { secure: false,
     sameSite:true },
     store: new MemcachedStore({
-      hosts: ["130.245.171.151:11211", "130.245.171.156:11211"],
+      hosts: ["130.245.171.151:11211", "130.245.171.156:11211", "130.245.171.157:11211", "130.245.171.160:11211"],
       secret: "KWUPPYCAT" // Optionally use transparent encryption for memcache session data
     })
 }));
