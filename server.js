@@ -452,7 +452,7 @@ app.post("/addmedia", (req, res)=>{
     });
     setTimeout(function() { 
       connection.close(); 
-      }, 300);
+      }, 100);
 });
     res.status(200).json({status:"OK", id: id});
   })
@@ -485,7 +485,7 @@ amqp.connect('amqp://localhost', function(error, connection) {
         channel.prefetch(1);
         console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", queue);
         channel.consume(queue, function(params) {
-          console.log(params)
+          console.log("PARAMS:",params)
           let query = 'INSERT INTO tweeter (id, filename, content, type, user, parent) VALUES (?, ?, ?, ?, ?, ?)';
           client.execute(query, params, { prepare: true })
           .then(result => {
