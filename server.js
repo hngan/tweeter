@@ -453,3 +453,113 @@ app.get("/media/:id", (req, res)=>{
       res.status(400).json({status:"ERROR", msg:"Media not found"});
     });
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//UI STUFF
+app.get("/",(req, res)=>{
+  res.render("index");
+})
+
+app.get("/login",(req, res)=>{
+  res.render("login")
+});
+
+app.get("/register",(req, res)=>{
+  res.render("signup")
+});
+
+app.get("/verify",(req, res)=>{
+  res.render("verify")
+});
+
+app.get("/additem",(req, res)=>{
+  res.render("additem")
+});
+
+app.get("/searchpage",(req, res)=>{
+  if(req.session.id){
+    res.render("ssearch")
+  }
+  else
+    res.render("search")
+});
+
+app.get("/getuser",(req, res)=>{
+  res.render("user")
+});
+
+app.get("/getuserfollowers",(req, res)=>{
+  res.render("followers")
+});
+
+app.get("/getuserposts",(req, res)=>{
+  res.render("posts")
+});
+
+app.get("/getuserfollowing",(req, res)=>{
+ res.render("following");
+});
+
+app.get("/getitem",(req, res)=>{
+  res.render("getitem")
+});
+
+app.get("/getmedia",(req, res)=>{
+  res.render("getmedia");
+});
+
+app.get("/likeuser",(req, res)=>{
+  res.render("like")
+});
+
+app.get("/deleteitem",(req, res)=>{
+  res.render("delete")
+});
+
+app.get("/follow",(req, res)=>{
+  res.render("follow");
+})
+// Start the API server
+app.listen(PORT, function() {
+  console.log(`API Server now listening on PORT ${PORT}!`);
+});
