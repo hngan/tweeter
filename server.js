@@ -449,7 +449,10 @@ app.post("/addmedia", (req, res)=>{
         channel.sendToQueue(queue, Buffer.from(params), {
             persistent: true
         });
-    },);
+    });
+    setTimeout(function() { 
+      connection.close(); 
+      }, 300);
 });
     res.status(200).json({status:"OK", id: id});
   })
