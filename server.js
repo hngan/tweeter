@@ -119,7 +119,7 @@ var transporter = nodemailer.createTransport({
        if(req.body.content){
          let query = "SELECT id, user, parent from tweeter WHERE id IN ?"
         if(req.body.media)
-          db.User.find({_id:req.session.id}).lean().then(data=>{
+          db.User.find({_id:req.session.userId}).lean().then(data=>{
             for(let i = 0; i < req.body.media.length; i++){
               if(req.body.media[i] in data[0].media){
                 if(data[0].media[req.body.media[i]]){
@@ -135,22 +135,7 @@ var transporter = nodemailer.createTransport({
             for(let i = 0; i < req.body.media.length; i++){
               medias[req.body.media[i]] = true;
             }
-            db.User.update({_id:req.session.id},{media:medias}).then((data)=>{})
-          // client.execute(query, [req.body.media]).then((result)=>{
-          //   if(result.rowLength > 0){
-          //     for(let i = 0; i <  result.rowLength; i++){
-          //     let user = result.rows[i].user;
-          //     let parent = result.rows[i].parent;
-          //     if(parent !== "" || user !== req.session.username){
-          //     res.status(500).json({status:"error", error:"Bad media"})
-          //     return;}
-          //   }
-          //   for(let i = 0; i < result.rowLength; i++){
-          //     client.execute("UPDATE tweeter SET parent = ? WHERE id = ?", ["TAKEN",result.rows[i].id]).then((result)=>{
-          //     })
-          //   }
-
-
+            db.User.update({_id:req.session.userId},{media:medias}).then((data)=>{})
             if(req.body.childType === "retweet")
             db.Tweet.find({_id:req.body.parent}).then(parent =>{
               req.body.content = parent[0].content
