@@ -35,7 +35,7 @@ app.engine("handlebars", exphbs({ defaultLayout: "main" }));
 app.set("view engine", "handlebars");
 
 const client = new cassandra.Client({contactPoints:['127.0.0.1'], localDataCenter: 'datacenter1',keyspace:"hw6"});
-mongoose.connect("mongodb://localhost/tweeter", { useNewUrlParser: true });
+mongoose.connect("mongodb://130.245.171.151/tweeter", { useNewUrlParser: true });
 
 var transporter = nodemailer.createTransport({
      port: 25,
@@ -146,6 +146,7 @@ var transporter = nodemailer.createTransport({
             db.Tweet.find({_id:req.body.parent}).then(parent =>{
               req.body.content = parent[0].content
               db.Tweet.create(req.body).then(tweet =>{
+                let id = tweet._id;
                 db.Tweet.findOneAndUpdate({_id:req.body.parent},{$inc:{retweeted: 1, interest: 1}},(resp)=>{res.status(200).json({status:"OK", id:id});});
               })
             })
