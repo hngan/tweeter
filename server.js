@@ -23,7 +23,7 @@ app.use(session({
     cookie: { secure: false,
     sameSite:true },
     store: new MemcachedStore({
-      hosts: ["127.0.0.1:11211"],
+      hosts: ["130.245.171.151:11211", "130.245.171.156:11211"],
       secret: "KWUPPYCAT" // Optionally use transparent encryption for memcache session data
     })
 }));
@@ -48,22 +48,30 @@ var transporter = nodemailer.createTransport({
   app.post("/adduser", (req, res) => {
     db.User.find({username:req.body.username}).lean().then((resp) => {
       if(resp.length === 0){
-        db.User.find({email:req.body.email}).then((data) =>{
+        db.User.find({email:req.body.email}).lean().then((data) =>{
          if(data.length === 0){
-         db.User.create(req.body).then((dbmodel)=>{
-           const message = {
-             from: 'hnganMailingService356@gmail.com',
-             to:req.body.email,
-             subject:"hngan course project sign up!",
-             text:`Welcome ${req.body.username} \n,
-             Here is your validation key: <abracadabra>`
-           }
-           transporter.sendMail(message, function (err, info) {
-             if(err)
-               console.log(err)
-              });
-              res.status(200).json({status:"OK"});
-            })}
+          amqp.connect('amqp://localhost', function(error0, connection) {
+            if (error0) {
+                throw error0;
+            }
+              connection.createChannel(function(error1, channel) {
+                if (error1) {
+                    throw error1;
+                }
+                var queue = 'signup_queue';
+                channel.assertQueue(queue, {
+                    durable: true
+                });
+                channel.sendToQueue(queue, Buffer.from(JSON.stringify(req.body)), {
+                    persistent: true
+                });
+            });
+            setTimeout(function() { 
+              connection.close(); 
+              }, 100);
+        }); 
+            res.status(200).json({status:"OK"});
+          }
             else{
               res.status(500).json({status:"error"})
             }
@@ -465,7 +473,8 @@ app.get("/media/:id", (req, res)=>{
     .then(result => {
         if(result.rowLength > 0){
         let image = result.rows[0].content;
-        res.contentType(result.rows[0].type).status(200).send(image); 
+        let type = result.rows[0].type ? result.rows[0].type : "png"
+        res.contentType(type).status(200).send(image);
     }
     else
       res.status(400).json({status:"ERROR", msg:"Media not found"});
@@ -491,6 +500,38 @@ amqp.connect('amqp://localhost', function(error, connection) {
           let query = 'INSERT INTO tweeter (id, filename, content, type, user, parent) VALUES (?, ?, ?, ?, ?, ?)';
           let params = [id, name , imgfile, type, file.user, ""]
           client.execute(query, params, { prepare: true })
+          .then(result => {
+            channel.ack(files);
+          });
+        }, {
+            noAck: false
+        });
+    });
+});
+
+amqp.connect('amqp://localhost', function(error, connection) {
+    connection.createChannel(function(error, channel) {
+        var queue = 'signup_queue';
+        channel.assertQueue(queue, {
+            durable: true
+        });
+        channel.prefetch(1);
+        console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", queue);
+        channel.consume(queue, function(files) {
+          let newUser =JSON.parse(files.content.toString())
+          db.User.create(newUser).then((dbmodel)=>{
+            const message = {
+              from: 'hnganMailingService356@gmail.com',
+              to:newUser.email,
+              subject:"hngan course project sign up!",
+              text:`Welcome ${newUser.username} \n,
+              Here is your validation key: <abracadabra>`
+            }
+            transporter.sendMail(message, function (err, info) {
+              if(err)
+                console.log(err)
+               });   
+          })
           .then(result => {
             channel.ack(files);
           });
