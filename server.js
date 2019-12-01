@@ -35,12 +35,11 @@ const client = new cassandra.Client({contactPoints:['127.0.0.1'], localDataCente
 mongoose.connect("mongodb://localhost/tweeter", { useNewUrlParser: true });
 
 var transporter = nodemailer.createTransport({
-    service: 'gmail',
-    pool: true,
-    auth: {
-       user: 'hnganMailingService3562@gmail.com',
-       pass: 'Cse356iscool'
-    }
+     port: 25,
+    host: 'localhost',
+    tls: {
+      rejectUnauthorized: false
+    },
   });
 
   app.post("/adduser", (req, res) => {
