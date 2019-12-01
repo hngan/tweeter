@@ -438,7 +438,7 @@ app.post("/addmedia", (req, res)=>{
     if (error0) {
         throw error0;
     }
-   let meow = async function(){connection.createChannel(function(error1, channel) {
+      connection.createChannel(function(error1, channel) {
         if (error1) {
             throw error1;
         }
@@ -449,10 +449,8 @@ app.post("/addmedia", (req, res)=>{
         channel.sendToQueue(queue, Buffer.from(params), {
             persistent: true
         });
-        console.log(" [x] Sent '%s'", msg);
-    });}
-    await meow();
-    connection.end()
+        connection.end();
+    },);
 });
     res.status(200).json({status:"OK", id: id});
   })
