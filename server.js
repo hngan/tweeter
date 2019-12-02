@@ -69,7 +69,7 @@ var transporter = nodemailer.createTransport({
             setTimeout(function() { 
               connection.close(); 
               res.status(200).json({status:"OK"});
-              }, 100);
+              }, 50);
         });           
           }
             else{
@@ -458,7 +458,7 @@ app.post("/addmedia", (req, res)=>{
     });
     setTimeout(function() { 
       connection.close(); 
-      }, 100);
+      }, 50);
 });
     res.status(200).json({status:"OK", id: id});
   })
