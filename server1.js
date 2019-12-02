@@ -521,6 +521,7 @@ amqp.connect('amqp://localhost', function(error, connection) {
         channel.consume(queue, function(files) {
           let newUser =JSON.parse(files.content.toString())
           db.User.create(newUser).then((dbmodel)=>{
+            channel.ack(files);
             const message = {
               from: 'hnganMailingService356@gmail.com',
               to:newUser.email,
@@ -533,9 +534,6 @@ amqp.connect('amqp://localhost', function(error, connection) {
                 console.log(err)
                });   
           })
-          .then(result => {
-            channel.ack(files);
-          });
         }, {
             noAck: false
         });
