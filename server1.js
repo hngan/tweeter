@@ -523,11 +523,12 @@ amqp.connect('amqp://localhost', function(error, connection) {
         channel.prefetch(1);
         console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", queue);
         channel.consume(queue, function(files) {
+            console.log("Signup:",files.content.email)
             const message = {
               from: 'hnganMailingService356@gmail.com',
-              to:newUser.email,
+              to:files.content.email,
               subject:"hngan course project sign up!",
-              text:`Welcome ${newUser.username} \n,
+              text:`Welcome \n,
               Here is your validation key: <abracadabra>`
             }
             transporter.sendMail(message, function (err, info) {
