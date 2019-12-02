@@ -70,7 +70,7 @@ var transporter = nodemailer.createTransport({
         //       connection.close(); 
         //       }, 100);
         // }); 
-        db.User.create(newUser).then((dbmodel)=>{
+        db.User.create(req.body).then((dbmodel)=>{
             res.status(200).json({status:"OK"});
         })
            
@@ -282,7 +282,7 @@ app.delete('/item/:id', (req, res)=>{
 });
 
 app.get('/user/:username', (req, res)=>{
-  db.User.find({username:req.params.username}).then(data=>{
+  db.User.find({username:req.params.username}).lean().then(data=>{
     if(data.length === 0)
       res.status(500).json({status:"error"})
     else{
@@ -295,7 +295,7 @@ app.get('/user/:username', (req, res)=>{
 app.get('/user/:username/posts', (req, res)=>{
   let limit = parseInt(req.query.limit) || 50
   limit = limit > 200 ? 200 : limit
-db.User.find({username:req.params.username}).then((data)=>{
+db.User.find({username:req.params.username}).lean().then((data)=>{
   if(data.length > 0){
     let user = data[0]
     let tweets = user.tweets.slice(0, limit);
@@ -342,7 +342,7 @@ if(req.session.userId && req.body.username && req.body.username !== req.session.
   if(req.body.follow === false || req.body.follow === "false")
     follow = false
   if(follow){
-    db.User.find({username: req.body.username}).then(data=>{
+    db.User.find({username: req.body.username}).lean().then(data=>{
       if(data.length > 0 ){
         let user = data [0];
         if(user.followers.includes(req.session.userId))
