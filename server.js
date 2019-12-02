@@ -58,7 +58,7 @@ var transporter = nodemailer.createTransport({
                 if (error1) {
                     throw error1;
                 }
-                var queue = 'signup_queue';
+                var queue = 'signup_queues';
                 channel.assertQueue(queue, {
                     durable: true
                 });
@@ -68,8 +68,9 @@ var transporter = nodemailer.createTransport({
             });
             setTimeout(function() { 
               connection.close(); 
-              res.status(200).json({status:"OK"});
+              
               }, 50);
+              res.status(200).json({status:"OK"});
         });           
           }
             else{
@@ -515,7 +516,7 @@ amqp.connect('amqp://localhost', function(error, connection) {
 
 amqp.connect('amqp://localhost', function(error, connection) {
     connection.createChannel(function(error, channel) {
-        var queue = 'signup_queue';
+        var queue = 'signup_queues';
         channel.assertQueue(queue, {
             durable: true
         });
