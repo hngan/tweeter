@@ -50,27 +50,30 @@ var transporter = nodemailer.createTransport({
       if(resp.length === 0){
         db.User.find({email:req.body.email}).lean().then((data) =>{
          if(data.length === 0){
-          amqp.connect('amqp://localhost', function(error0, connection) {
-            if (error0) {
-                throw error0;
-            }
-              connection.createChannel(function(error1, channel) {
-                if (error1) {
-                    throw error1;
-                }
-                var queue = 'signup_queue';
-                channel.assertQueue(queue, {
-                    durable: true
-                });
-                channel.sendToQueue(queue, Buffer.from(JSON.stringify(req.body)), {
-                    persistent: true
-                });
-            });
-            setTimeout(function() { 
-              connection.close(); 
-              }, 100);
-        }); 
+        //   amqp.connect('amqp://localhost', function(error0, connection) {
+        //     if (error0) {
+        //         throw error0;
+        //     }
+        //       connection.createChannel(function(error1, channel) {
+        //         if (error1) {
+        //             throw error1;
+        //         }
+        //         var queue = 'signup_queue';
+        //         channel.assertQueue(queue, {
+        //             durable: true
+        //         });
+        //         channel.sendToQueue(queue, Buffer.from(JSON.stringify(req.body)), {
+        //             persistent: true
+        //         });
+        //     });
+        //     setTimeout(function() { 
+        //       connection.close(); 
+        //       }, 100);
+        // }); 
+        db.User.create(newUser).then((dbmodel)=>{
             res.status(200).json({status:"OK"});
+        })
+           
           }
             else{
               res.status(500).json({status:"error"})
@@ -510,35 +513,35 @@ amqp.connect('amqp://localhost', function(error, connection) {
     });
 });
 
-amqp.connect('amqp://localhost', function(error, connection) {
-    connection.createChannel(function(error, channel) {
-        var queue = 'signup_queue';
-        channel.assertQueue(queue, {
-            durable: true
-        });
-        channel.prefetch(1);
-        console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", queue);
-        channel.consume(queue, function(files) {
-          let newUser =JSON.parse(files.content.toString())
-          db.User.create(newUser).then((dbmodel)=>{
-            channel.ack(files);
-            const message = {
-              from: 'hnganMailingService356@gmail.com',
-              to:newUser.email,
-              subject:"hngan course project sign up!",
-              text:`Welcome ${newUser.username} \n,
-              Here is your validation key: <abracadabra>`
-            }
-            transporter.sendMail(message, function (err, info) {
-              if(err)
-                console.log(err)
-               });   
-          })
-        }, {
-            noAck: false
-        });
-    });
-});
+// amqp.connect('amqp://localhost', function(error, connection) {
+//     connection.createChannel(function(error, channel) {
+//         var queue = 'signup_queue';
+//         channel.assertQueue(queue, {
+//             durable: true
+//         });
+//         channel.prefetch(1);
+//         console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", queue);
+//         channel.consume(queue, function(files) {
+//           let newUser =JSON.parse(files.content.toString())
+//           db.User.create(newUser).then((dbmodel)=>{})
+//             channel.ack(files);
+//             const message = {
+//               from: 'hnganMailingService356@gmail.com',
+//               to:newUser.email,
+//               subject:"hngan course project sign up!",
+//               text:`Welcome ${newUser.username} \n,
+//               Here is your validation key: <abracadabra>`
+//             }
+//             transporter.sendMail(message, function (err, info) {
+//               if(err)
+//                 console.log(err)
+//                });   
+//           })
+//         }, {
+//             noAck: false
+//         });
+//     });
+// });
 
 
 
