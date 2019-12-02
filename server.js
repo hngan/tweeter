@@ -50,7 +50,8 @@ var transporter = nodemailer.createTransport({
       if(resp.length === 0){
         db.User.find({email:req.body.email}).lean().then((data) =>{
          if(data.length === 0){
-          amqp.connect('amqp://localhost', function(error0, connection) {
+        db.User.create(req.body).then(data =>{
+            amqp.connect('amqp://localhost', function(error0, connection) {
             if (error0) {
                 throw error0;
             }
@@ -58,20 +59,20 @@ var transporter = nodemailer.createTransport({
                 if (error1) {
                     throw error1;
                 }
-                var queue = 'signup_queues';
+                var queue = 'signup_queue';
                 channel.assertQueue(queue, {
                     durable: true
                 });
-                channel.sendToQueue(queue, Buffer.from(JSON.stringify(req.body)), {
+                channel.sendToQueue(queue, Buffer.from(req.body.email), {
                     persistent: true
                 });
             });
             setTimeout(function() { 
-              connection.close(); 
-              
-              }, 50);
+              connection.close();}, 50);
               res.status(200).json({status:"OK"});
-        });           
+        });
+        })
+                     
           }
             else{
               res.status(500).json({status:"error"})
@@ -245,42 +246,39 @@ var transporter = nodemailer.createTransport({
 
 //MILESTONE 2 STUFF
 app.delete('/item/:id', (req, res)=>{
-  console.log("DOING A DELETE")
-  if(req.session.userId)
-  db.Tweet.find({_id: req.params.id}).lean().then((data)=>{
-    if(data.length === 0){
-      res.status(500).json({status:"error"});
-    }
-    else{
-    if(req.session.username !== data[0].username){
-      res.status(500).json({status:"error"});}
+    console.log("DOING A DELETE")
+    if(req.session.userId)
+    db.Tweet.find({_id: req.params.id}).lean().then((data)=>{
+      if(data.length === 0){
+        res.status(500).json({status:"error"});
+      }
       else{
-        amqp.connect('amqp://localhost', function(error0, connection) {
-          if (error0) {
-              throw error0;
+      if(req.session.username !== data[0].username){
+        res.status(500).json({status:"error"});}
+        else{
+          let query = "DELETE FROM tweeter WHERE id = ?";
+        if(data[0].media)
+        for(let i = 0; i < data[0].media.length; i++){
+            client.execute(query, [data[0].media[i]]).then((err)=>{
+              if(err)
+              console.log(err)
+            });
           }
-            connection.createChannel(function(error1, channel) {
-              if (error1) {
-                  throw error1;
-              }
-              var queue = 'delete_queue';
-              channel.assertQueue(queue, {
-                  durable: true
-              });
-              channel.sendToQueue(queue, Buffer.from(JSON.stringify(data[0])), {
-                  persistent: true
-              });
+          db.Tweet.deleteOne({_id:req.params.id}, (err)=>{
+            if(err){
+              res.status(500).json({status:"error"});
+            }
+            else{
+              db.User.findOneAndUpdate({username:req.session.username},{ $pull: {tweets: req.params.id} }).then((resp)=>{
+                res.status(200).json({status:"OK"});
+              })
+            }    
           });
-          setTimeout(function() { 
-            connection.close(); 
-            }, 50);
-      }); 
-      res.status(200).json({status:"OK"}); 
-    }}
-  }) 
-  else
-    res.status(500).json({status:"error"});
-});
+        }}
+    }) 
+    else
+      res.status(500).json({status:"error"});
+  });
 
 app.get('/user/:username', (req, res)=>{
   db.User.find({username:req.params.username}).then(data=>{
@@ -516,15 +514,13 @@ amqp.connect('amqp://localhost', function(error, connection) {
 
 amqp.connect('amqp://localhost', function(error, connection) {
     connection.createChannel(function(error, channel) {
-        var queue = 'signup_queues';
+        var queue = 'signup_queue';
         channel.assertQueue(queue, {
             durable: true
         });
         channel.prefetch(1);
         console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", queue);
         channel.consume(queue, function(files) {
-          let newUser =JSON.parse(files.content.toString())
-          db.User.create(newUser).then((dbmodel)=>{
             const message = {
               from: 'hnganMailingService356@gmail.com',
               to:newUser.email,
@@ -535,38 +531,7 @@ amqp.connect('amqp://localhost', function(error, connection) {
             transporter.sendMail(message, function (err, info) {
               if(err)
                 console.log(err)
-               });   
-          })
-          .then(result => {
-            channel.ack(files);
-          });
-        }, {
-            noAck: false
-        });
-    });
-});
-
-amqp.connect('amqp://localhost', function(error, connection) {
-    connection.createChannel(function(error, channel) {
-        var queue = 'delete_queue';
-        channel.assertQueue(queue, {
-            durable: true
-        });
-        channel.prefetch(1);
-        console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", queue);
-        channel.consume(queue, function(files) {
-          let item =JSON.parse(files.content.toString())
-          let query = "DELETE FROM tweeter WHERE id = ?";
-      if(item.media)
-      for(let i = 0; i < item.media.length; i++){
-          client.execute(query, [item.media[i]]).then((err)=>{
-            if(err)
-            console.log(err)
-          });
-        }
-        db.Tweet.deleteOne({_id:item._id}, (err)=>{
-            db.User.findOneAndUpdate({username:req.session.username},{ $pull: {tweets: item._id} }).then((resp)=>{})  
-        })
+               })
           .then(result => {
             channel.ack(files);
           });
@@ -673,4 +638,3 @@ app.get("/follow",(req, res)=>{
 app.listen(PORT, function() {
   console.log(`API Server now listening on PORT ${PORT}!`);
 });
-
