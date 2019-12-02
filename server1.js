@@ -534,10 +534,9 @@ amqp.connect('amqp://localhost', function(error, connection) {
             transporter.sendMail(message, function (err, info) {
               if(err)
                 console.log(err)
+                channel.ack(files);
                })
-          .then(result => {
-            channel.ack(files);
-          });
+            
         }, {
             noAck: false
         });
