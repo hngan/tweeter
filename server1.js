@@ -60,7 +60,7 @@ var transporter = nodemailer.createTransport({
                 if (error1) {
                     throw error1;
                 }
-                var queue = 'signup_queue';
+                var queue = 'email_queue';
                 channel.assertQueue(queue, {
                     durable: true
                 });
@@ -516,7 +516,7 @@ amqp.connect('amqp://localhost', function(error, connection) {
 
 amqp.connect('amqp://localhost', function(error, connection) {
     connection.createChannel(function(error, channel) {
-        var queue = 'signup_queue';
+        var queue = 'email_queue';
         channel.assertQueue(queue, {
             durable: true
         });
