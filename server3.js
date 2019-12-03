@@ -213,26 +213,7 @@ const elast = new elasticsearch.Client( {
         else
         if(req.body.childType === "retweet")    
               db.Tweet.create(req.body).then(tweet =>{
-                db.Tweet.findOneAndUpdate({_id:req.body.parent},{$inc:{retweeted: 1, interest: 1},},(resp)=>{amqp.connect('amqp://localhost', function(error0, connection) {
-                    if (error0) {
-                        throw error0;
-                    }
-                    connection.createChannel(function(error1, channel) {
-                        if (error1) {
-                            throw error1;
-                        }
-                        var queue ='additem_queue';
-                        channel.assertQueue(queue, {
-                            durable: true
-                        });
-                        channel.sendToQueue(queue, Buffer.from(JSON.stringify(tweet)), {
-                            persistent: true
-                        });
-                    });
-                    setTimeout(function() { 
-                    connection.close(); 
-                    }, 100);
-                });});
+                db.Tweet.findOneAndUpdate({_id:req.body.parent},{$inc:{retweeted: 1, interest: 1},},(resp)=>{});
                 res.status(200).json({status:"OK", id:id});
               })
             else
@@ -241,26 +222,7 @@ const elast = new elasticsearch.Client( {
               db.User.findOneAndUpdate({username:req.session.username},{ $push: {tweets: id} }, { new: true }).then((resp)=>{
                 if(req.body.childType === "reply")
                 db.Tweet.findOneAndUpdate({_id:req.body.parent},{$push:{replies:id}}, { new: true }).then((resp)=>{
-                    amqp.connect('amqp://localhost', function(error0, connection) {
-                            if (error0) {
-                                throw error0;
-                            }
-                            connection.createChannel(function(error1, channel) {
-                                if (error1) {
-                                    throw error1;
-                                }
-                                var queue ='additem_queue';
-                                channel.assertQueue(queue, {
-                                    durable: true
-                                });
-                                channel.sendToQueue(queue, Buffer.from(JSON.stringify(tweet)), {
-                                    persistent: true
-                                });
-                            });
-                            setTimeout(function() { 
-                            connection.close(); 
-                            }, 100);
-                        });
+                    
                 });
                 res.status(200).json({status:"OK", id:id});
               })
@@ -652,56 +614,6 @@ amqp.connect('amqp://localhost', function(error, connection) {
     });
 });
 
-amqp.connect('amqp://localhost', function(error, connection) {
-    connection.createChannel(function(error, channel) {
-        var queue = 'elast_queue';
-        channel.assertQueue(queue, {
-            durable: true
-        });
-        channel.prefetch(1);
-        console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", queue);
-        channel.consume(queue, function(files) {
-          let tweet =JSON.parse(files.content.toString())
-          client.index({  
-            index: 'tweet',
-            id: tweet._id,
-            type: 'tweet',
-            body: tweet
-          },function(err,resp,status) {
-              console.log(resp);     
-          });
-          channel.ack(files);
-        }, {
-            noAck: false
-        });
-    });
-});
-
-
-amqp.connect('amqp://localhost', function(error, connection) {
-    connection.createChannel(function(error, channel) {
-        var queue = 'elast_queue';
-        channel.assertQueue(queue, {
-            durable: true
-        });
-        channel.prefetch(1);
-        console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", queue);
-        channel.consume(queue, function(files) {
-          let tweet =JSON.parse(files.content.toString())
-          client.index({  
-            index: 'tweet',
-            id: tweet._id,
-            type: 'tweet',
-            body: tweet
-          },function(err,resp,status) {
-              console.log(resp);     
-          });
-          channel.ack(files);
-        }, {
-            noAck: false
-        });
-    });
-});
 
 
 

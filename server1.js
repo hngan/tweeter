@@ -221,7 +221,7 @@ const elast = new elasticsearch.Client( {
     //general search
 	console.log(query);
     if(req.body.following === false || req.body.following ==="false"){
-      db.Tweet.find(query).sort(ranking).limit(limit).lean().then((data)=>{
+      db.Tweet.find(query).limit(limit).lean().then((data)=>{
         if(data)
           res.json({status:"OK", items:data});
         });
@@ -231,7 +231,7 @@ const elast = new elasticsearch.Client( {
     db.User.find({_id:req.session.userId}).lean().then((data)=>{
       if(data[0])
       query.author = {$in: data[0].following}
-      db.Tweet.find(query).where('username').ne(req.session.username).sort(ranking).limit(limit).lean().then((data)=>{
+      db.Tweet.find(query).where('username').ne(req.session.username).limit(limit).lean().then((data)=>{
         if(data){
           res.json({status:"OK followers", items:data});}
             });
