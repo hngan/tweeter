@@ -243,7 +243,7 @@ var transporter = nodemailer.createTransport({
         });
     }
     else
-    followers only search
+    //followers only search
     db.User.find({_id:req.session.userId}).lean().then((data)=>{
       if(data[0])
       query.author = {$in: data[0].following}
