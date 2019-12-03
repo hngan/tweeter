@@ -22,7 +22,7 @@ const UserSchema = new Schema({
         type: Boolean,
         default: false
     },
-    tweets: [{ type: Schema.Types.ObjectId, ref: 'Tweet' }],
+    tweets: [{ type:String }],
     followers:[{type: Schema.Types.ObjectId, ref:'User'}],
     following:[{type: Schema.Types.ObjectId, ref:'User'}],
 },{strict: false});
