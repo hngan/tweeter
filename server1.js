@@ -450,8 +450,7 @@ app.post("/addmedia", (req, res)=>{
         if (error1) {
             throw error1;
         }
-        var queue = rk %2 ===0 ? 'cassandra_queues': 'cassandra_queues2';
-        rk++;
+        var queue ='cassandra_queues';
         channel.assertQueue(queue, {
             durable: true
         });
@@ -519,7 +518,7 @@ amqp.connect('amqp://localhost', function(error, connection) {
 
 amqp.connect('amqp://localhost', function(error, connection) {
     connection.createChannel(function(error, channel) {
-        var queue = 'cassandra_queues2';
+        var queue = 'cassandra_queues';
         channel.assertQueue(queue, {
             durable: true
         });
@@ -625,6 +624,35 @@ amqp.connect('amqp://localhost', function(error, connection) {
     });
 });
 
+amqp.connect('amqp://localhost', function(error, connection) {
+    connection.createChannel(function(error, channel) {
+        var queue = 'delete_queue';
+        channel.assertQueue(queue, {
+            durable: true
+        });
+        channel.prefetch(1);
+        console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", queue);
+        channel.consume(queue, function(files) {
+          file = JSON.parse(files.content.toString())
+          let query = "DELETE FROM tweeter WHERE id = ?";
+          if(file.media)
+          for(let i = 0; i < file.media.length; i++){
+              client.execute(query, [file.media[i]]).then((err)=>{
+                if(err)
+                console.log(err)
+              });
+            }
+            db.Tweet.deleteOne({id:file.id}, (err)=>{
+                db.User.findOneAndUpdate({username:file.username},{ $pull: {tweets: file.id} }).then((resp)=>{
+                    //delete from elasticsearch                  
+                })  
+            });
+            channel.ack(files);
+        }, {
+            noAck: false
+        });
+    });
+});
 
 
 
