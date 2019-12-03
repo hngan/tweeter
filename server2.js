@@ -169,7 +169,7 @@ var transporter = nodemailer.createTransport({
                 connection.close(); 
                 }, 100);
             });
-          res.status(200).json({status:"OK", id:id});
+          res.status(200).json({status:"OK", id:req.body.id});
           }
           });
         //no media
@@ -195,8 +195,7 @@ var transporter = nodemailer.createTransport({
         connection.close(); 
         }, 100);
     });
-            
-            res.status(200).json({status:"OK", id:id});
+         res.status(200).json({status:"OK", id:req.body.id});
        }
        else
        res.status(500).json({status:"error", error:"NO CONTENT"})
