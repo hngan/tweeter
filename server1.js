@@ -135,6 +135,40 @@ const elast = new elasticsearch.Client( {
        req.body.author = req.session.userId;
        req.body.username = req.session.username;
        if(req.body.content){
+         let query = "SELECT id, user, parent from tweeter WHERE id IN ?"
+        if(req.body.media)
+          client.execute(query, [req.body.media]).then((result)=>{
+            if(result.rowLength > 0){
+              for(let i = 0; i <  result.rowLength; i++){
+              let user = result.rows[i].user;
+              let parent = result.rows[i].parent;
+              if(parent !== "" || user !== req.session.username){
+              res.status(500).json({status:"error", error:"Bad media"})
+              return;}
+            }
+            for(let i = 0; i < result.rowLength; i++){
+              client.execute("UPDATE tweeter SET parent = ? WHERE id = ?", ["TAKEN",result.rows[i].id]).then((result)=>{
+              })
+            }
+            if(req.body.childType === "retweet")
+              db.Tweet.create(req.body).then(tweet =>{
+                let id = tweet._id;
+                db.Tweet.findOneAndUpdate({_id:req.body.parent},{$inc:{retweeted: 1, interest: 1}},(resp)=>{res.status(200).json({status:"OK", id:id});});
+              })
+            else
+            db.Tweet.create(req.body).then((tweet) =>{
+              let id = tweet._id;
+              db.User.findOneAndUpdate({username:req.session.username},{ $push: {tweets: id} }, { new: true }).then((resp)=>{
+                if(req.body.childType === "reply")
+                db.Tweet.findOneAndUpdate({_id:req.body.parent},{ $push:{replies:id} }, {new: true}).then((resp)=>{res.status(200).json({status:"OK", id:id});});
+                else
+                res.status(200).json({status:"OK", id:id});
+              })
+          })
+          }
+          });
+        //no media
+        else
         if(req.body.childType === "retweet")    
               db.Tweet.create(req.body).then(tweet =>{
                 db.Tweet.findOneAndUpdate({_id:req.body.parent},{$inc:{retweeted: 1, interest: 1},},(resp)=>{res.status(200).json({status:"OK", id:tweet._id});});
