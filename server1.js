@@ -51,10 +51,9 @@ const elast = new elasticsearch.Client( {
 //   });
 
   app.post("/adduser", (req, res) => {
-    db.User.find({username:req.body.username}).lean().then((resp) => {
+    db.User.find({$or: [{username:req.body.username}, {email:req.body.email}]}).lean().then((resp) => {
       if(resp.length === 0){
-        db.User.find({email:req.body.email}).lean().then((data) =>{
-         if(data.length === 0){
+
         //   amqp.connect('amqp://localhost', function(error0, connection) {
         //     if (error0) {
         //         throw error0;
@@ -78,12 +77,7 @@ const elast = new elasticsearch.Client( {
         db.User.create(req.body).then((dbmodel)=>{
             res.status(200).json({status:"OK"});
         })
-           
-          }
-            else{
-              res.status(401).json({status:"error"})
-            }
-          })}
+    }
          else{
            res.status(401).json({status:"error", error:"NOT LOGGED IN"})
          }
@@ -210,8 +204,8 @@ const elast = new elasticsearch.Client( {
     let time = req.body.timestamp ? parseInt(req.body.timestamp) : Date.now()/1000;
     let query ={timestamp: {$lte: time}} //START OF QUERY
     let ranking = req.body.rank === "time" ? {"timestamp":-1} : {"interest": -1} //ORDER BY INTEREST OR TIME
-    // if(req.body.hasMedia)
-    //   query["media.0"] = { "$exists": true }
+    if(req.body.hasMedia)
+      query["media.0"] = { "$exists": true }
     if(req.body.q != "" && req.body.q != undefined){
       let q = escapeRegExp(req.body.q);
       query.content = { "$regex": q.split(" ").join("|"), "$options": "i" }}
@@ -227,7 +221,7 @@ const elast = new elasticsearch.Client( {
     //general search
 	console.log(query);
     if(req.body.following === false || req.body.following ==="false"){
-      db.Tweet.find(query).limit(limit).lean().then((data)=>{
+      db.Tweet.find(query).sort(ranking).limit(limit).lean().then((data)=>{
         if(data)
           res.json({status:"OK", items:data});
         });
@@ -237,7 +231,7 @@ const elast = new elasticsearch.Client( {
     db.User.find({_id:req.session.userId}).lean().then((data)=>{
       if(data[0])
       query.author = {$in: data[0].following}
-      db.Tweet.find(query).where('username').ne(req.session.username).limit(limit).lean().then((data)=>{
+      db.Tweet.find(query).where('username').ne(req.session.username).sort(ranking).limit(limit).lean().then((data)=>{
         if(data){
           res.json({status:"OK followers", items:data});}
             });
