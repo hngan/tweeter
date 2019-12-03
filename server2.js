@@ -510,7 +510,7 @@ app.get("/media/:id", (req, res)=>{
     .then(result => {
         if(result.rowLength > 0){
         let image = result.rows[0].content;
-        let type = result.rows[0].type ? result.rows[0].type : "png"
+        let type = result.rows[0].type ? result.rows[0].type : "jpg"
         res.contentType(type).status(200).send(image);
     }
     else
@@ -592,17 +592,17 @@ amqp.connect('amqp://localhost', function(error, connection) {
             })
           }
           if(file.tweet.childType === "retweet")
-                db.Tweet.create(file).then(tweet =>{
+                db.Tweet.create(file.tweet).then(tweet =>{
                     db.Tweet.findOneAndUpdate({id:file.tweet.parent},{$inc:{retweeted: 1, interest: 1},},(resp)=>{});
                 })
                 .then(result => {
                     channel.ack(files);
                   });
             else
-                db.Tweet.create(req.body).then((tweet) =>{
+                db.Tweet.create(file.tweet).then((tweet) =>{
                 let id = tweet.id;
                 db.User.findOneAndUpdate({username:file.username},{ $push: {tweets: id} }, { new: true }).then((resp)=>{
-                    if(req.body.childType === "reply")
+                    if(file.tweet.childType === "reply")
                     db.Tweet.findOneAndUpdate({id:file.tweet.parent},{$push:{replies:id}}, { new: true }).then((resp)=>{});
                 })
             })
@@ -627,17 +627,17 @@ amqp.connect('amqp://localhost', function(error, connection) {
           file = JSON.parse(files.content.toString())
           //elasticsearch
           if(file.tweet.childType === "retweet")
-                db.Tweet.create(file).then(tweet =>{
+                db.Tweet.create(file.tweet).then(tweet =>{
                     db.Tweet.findOneAndUpdate({id:file.tweet.parent},{$inc:{retweeted: 1, interest: 1},},(resp)=>{});
                 })
                 .then(result => {
                     channel.ack(files);
                   });
             else
-                db.Tweet.create(req.body).then((tweet) =>{
+                db.Tweet.create(file.tweet).then((tweet) =>{
                 let id = tweet.id;
                 db.User.findOneAndUpdate({username:file.username},{ $push: {tweets: id} }, { new: true }).then((resp)=>{
-                    if(req.body.childType === "reply")
+                    if(file.tweet.childType === "reply")
                     db.Tweet.findOneAndUpdate({id:file.tweet.parent},{$push:{replies:id}}, { new: true }).then((resp)=>{});
                 })
             })
