@@ -217,7 +217,7 @@ var transporter = nodemailer.createTransport({
     let limit = req.body.limit ? parseInt(req.body.limit) : 25;
     let time = req.body.timestamp ? parseInt(req.body.timestamp) : Date.now()/1000;
     let query ={timestamp: {$lte: time}} //START OF QUERY
-    let ranking = req.body.rank === "time" ? {"timestamp":{"order" : "desc"}} : {"interest": {"order" : "desc"}} //ORDER BY INTEREST OR TIME
+    let ranking = req.body.rank === "time" ? {"timestamp":-1} : {"interest": -1} //ORDER BY INTEREST OR TIME
     let q = "";
     if(req.body.hasMedia)
       query["media.0"] = { "$exists": true }
