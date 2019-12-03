@@ -33,7 +33,8 @@ const TweetSchema = new Schema({
     users:[{type: Schema.Types.ObjectId, ref:'User'}], //keep tracks of people who already liked
     parent: {type: Schema.Types.ObjectId, ref: 'Tweet'},
     replies:[{type: Schema.Types.ObjectId, ref: 'Tweet'}],
-    interest:{type: Number, default: 0}
+    interest:{type: Number, default: 0},
+    id: {type:String}
 }, { strict: false });
 
 const Tweet = mongoose.model("Tweet", TweetSchema);
