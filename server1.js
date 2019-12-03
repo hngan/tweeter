@@ -9,6 +9,7 @@ const cassandra =  require('cassandra-driver');
 const formidable = require('formidable');
 const MemcachedStore = require("connect-memcached")(session);
 const amqp = require('amqplib/callback_api');
+var elasticsearch=require('elasticsearch');
 const app = express();
 const PORT = process.env.PORT || 3000;
  
@@ -36,13 +37,28 @@ app.set("view engine", "handlebars");
 
 const client = new cassandra.Client({contactPoints:['127.0.0.1'], localDataCenter: 'datacenter1',keyspace:"hw6"});
 mongoose.connect("mongodb://130.245.171.156/tweeter", { useNewUrlParser: true });
-
+const elast = new elasticsearch.Client( {  
+    hosts: [
+      '130.245.171.151:9201',
+    ]
+  });
 var transporter = nodemailer.createTransport({
      port: 25,
     host: 'localhost',
     tls: {
       rejectUnauthorized: false
     },
+  });
+
+  elast.indices.create({  
+    index: 'tweets'
+  },function(err,resp,status) {
+    if(err) {
+      console.log(err);
+    }
+    else {
+      console.log("create",resp);
+    }
   });
 
   app.post("/adduser", (req, res) => {
@@ -542,6 +558,46 @@ amqp.connect('amqp://localhost', function(error, connection) {
 //         });
 //     });
 // });
+
+amqp.connect('amqp://localhost', function(error, connection) {
+    connection.createChannel(function(error, channel) {
+        var queue = 'additem_queue';
+        channel.assertQueue(queue, {
+            durable: true
+        });
+        channel.prefetch(1);
+        console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", queue);
+        channel.consume(queue, function(files) {
+          file = JSON.parse(files.content.toString())
+          //elasticsearch
+          .then(result => {
+            channel.ack(files);
+          });
+        }, {
+            noAck: false
+        });
+    });
+});
+
+amqp.connect('amqp://localhost', function(error, connection) {
+    connection.createChannel(function(error, channel) {
+        var queue = 'delete_queue';
+        channel.assertQueue(queue, {
+            durable: true
+        });
+        channel.prefetch(1);
+        console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", queue);
+        channel.consume(queue, function(files) {
+          file = JSON.parse(files.content.toString())
+          //elasticsearch
+          .then(result => {
+            channel.ack(files);
+          });
+        }, {
+            noAck: false
+        });
+    });
+});
 
 
 
