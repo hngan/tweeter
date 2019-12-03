@@ -206,7 +206,7 @@ var transporter = nodemailer.createTransport({
  });
  
  app.get('/item/:id',(req, res)=>{
-    db.Tweet.findById(req.params.id).lean().then((data)=>{
+    db.Tweet.findOne({id: req.params.id}).lean().then((data)=>{
       res.status(200).json({status:"OK", item:data})
         }).catch((err)=>{
           res.status(500).json({status:"error", error:err})  
