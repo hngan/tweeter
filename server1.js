@@ -49,7 +49,7 @@ var transporter = nodemailer.createTransport({
       rejectUnauthorized: false
     },
   });
-  client.cluster.health({},function(err,resp,status) {  
+  elast.cluster.health({},function(err,resp,status) {  
     console.log("-- Client Health --",resp);
   });
   elast.indices.create({  
