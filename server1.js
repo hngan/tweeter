@@ -436,7 +436,6 @@ app.post("/addmedia", (req, res)=>{
       console.error('Error', err)
       throw err
     }
-    
     let file =  JSON.parse(JSON.stringify(files.content))
     var id = file.name+String(Date.now())
     file.idds = id;
@@ -544,6 +543,34 @@ amqp.connect('amqp://localhost', function(error, connection) {
     });
 });
 
+amqp.connect('amqp://localhost', function(error, connection) {
+    connection.createChannel(function(error, channel) {
+        var queue = 'cassandra_queues';
+        channel.assertQueue(queue, {
+            durable: true
+        });
+        channel.prefetch(1);
+        console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", queue);
+        channel.consume(queue, function(files) {
+          file = JSON.parse(files.content.toString())
+          let type = file.type;
+          let name = file.name;
+          var img = fs.readFileSync(file.path);
+          var encode_image = img.toString('base64');
+          var imgfile =new Buffer(encode_image, 'base64');
+          var id = file.idds
+          let query = 'INSERT INTO tweeter (id, filename, content, type, user, parent) VALUES (?, ?, ?, ?, ?, ?)';
+          let params = [id, name , imgfile, type, file.user, ""]
+          client.execute(query, params, { prepare: true })
+          .then(result => {
+            channel.ack(files);
+          });
+        }, {
+            noAck: false
+        });
+    });
+});
+
 // amqp.connect('amqp://localhost', function(error, connection) {
 //     connection.createChannel(function(error, channel) {
 //         var queue = 'signup_queue';
@@ -573,26 +600,6 @@ amqp.connect('amqp://localhost', function(error, connection) {
 //         });
 //     });
 // });
-
-amqp.connect('amqp://localhost', function(error, connection) {
-    connection.createChannel(function(error, channel) {
-        var queue = 'additem_queue';
-        channel.assertQueue(queue, {
-            durable: true
-        });
-        channel.prefetch(1);
-        console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", queue);
-        channel.consume(queue, function(files) {
-          file = JSON.parse(files.content.toString())
-          //elasticsearch
-          .then(result => {
-            channel.ack(files);
-          });
-        }, {
-            noAck: false
-        });
-    });
-});
 
 amqp.connect('amqp://localhost', function(error, connection) {
     connection.createChannel(function(error, channel) {
