@@ -24,7 +24,7 @@ app.use(session({
     cookie: { secure: false,
     sameSite:true },
     store: new MemcachedStore({
-      hosts: ["130.245.171.151:11211", "130.245.171.156:11211", "130.245.171.157:11211", "130.245.171.160:11211","130.245.171.161:11211"],
+      hosts: ["192.168.122.21:11211", "192.168.122.22:11211", "192.168.122.23:11211", "192.168.122.24:11211","192.168.122.25:11211"],
       secret: "KWUPPYCAT" // Optionally use transparent encryption for memcache session data
     })
 }));
@@ -36,19 +36,19 @@ app.engine("handlebars", exphbs({ defaultLayout: "main" }));
 app.set("view engine", "handlebars");
 
 const client = new cassandra.Client({contactPoints:['127.0.0.1'], localDataCenter: 'datacenter1',keyspace:"hw6"});
-mongoose.connect("mongodb://130.245.171.156/tweeter", { useNewUrlParser: true });
+mongoose.connect("mongodb://192.168.122.22/tweeter", { useNewUrlParser: true });
 const elast = new elasticsearch.Client( {  
     hosts: [
       '130.245.171.151:9200',
     ]
   });
-var transporter = nodemailer.createTransport({
-     port: 25,
-    host: 'localhost',
-    tls: {
-      rejectUnauthorized: false
-    },
-  });
+// var transporter = nodemailer.createTransport({
+//      port: 25,
+//     host: 'localhost',
+//     tls: {
+//       rejectUnauthorized: false
+//     },
+//   });
 
   app.post("/adduser", (req, res) => {
     db.User.find({username:req.body.username}).lean().then((resp) => {
@@ -227,7 +227,7 @@ var transporter = nodemailer.createTransport({
     //general search
 	console.log(query);
     if(req.body.following === false || req.body.following ==="false"){
-      db.Tweet.find(query).limit(limit).sort(ranking).lean().then((data)=>{
+      db.Tweet.find(query).limit(limit).lean().then((data)=>{
         if(data)
           res.json({status:"OK", items:data});
         });
@@ -237,7 +237,7 @@ var transporter = nodemailer.createTransport({
     db.User.find({_id:req.session.userId}).lean().then((data)=>{
       if(data[0])
       query.author = {$in: data[0].following}
-      db.Tweet.find(query).where('username').ne(req.session.username).limit(limit).sort(ranking).lean().then((data)=>{
+      db.Tweet.find(query).where('username').ne(req.session.username).limit(limit).lean().then((data)=>{
         if(data){
           res.json({status:"OK followers", items:data});}
             });
@@ -572,10 +572,20 @@ amqp.connect('amqp://localhost', function(error, connection) {
         console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", queue);
         channel.consume(queue, function(files) {
           file = JSON.parse(files.content.toString())
-          //elasticsearch
-          .then(result => {
+          let query = "DELETE FROM tweeter WHERE id = ?";
+          if(file.media)
+          for(let i = 0; i < file.media.length; i++){
+              client.execute(query, [file.media[i]]).then((err)=>{
+                if(err)
+                console.log(err)
+              });
+            }
+            db.Tweet.deleteOne({id:file.id}, (err)=>{
+                db.User.findOneAndUpdate({username:file.username},{ $pull: {tweets: file.id} }).then((resp)=>{
+                    //delete from elasticsearch                  
+                })  
+            });
             channel.ack(files);
-          });
         }, {
             noAck: false
         });
