@@ -153,7 +153,28 @@ const elast = new elasticsearch.Client( {
             if(req.body.childType === "retweet")
               db.Tweet.create(req.body).then(tweet =>{
                 let id = tweet._id;
-                db.Tweet.findOneAndUpdate({_id:req.body.parent},{$inc:{retweeted: 1, interest: 1}},(resp)=>{});
+                db.Tweet.findOneAndUpdate({_id:req.body.parent},{$inc:{retweeted: 1, interest: 1}},(resp)=>{
+                    amqp.connect('amqp://localhost', function(error0, connection) {
+                            if (error0) {
+                                throw error0;
+                            }
+                            connection.createChannel(function(error1, channel) {
+                                if (error1) {
+                                    throw error1;
+                                }
+                                var queue ='additem_queue';
+                                channel.assertQueue(queue, {
+                                    durable: true
+                                });
+                                channel.sendToQueue(queue, Buffer.from(JSON.stringify(tweet)), {
+                                    persistent: true
+                                });
+                            });
+                            setTimeout(function() { 
+                            connection.close(); 
+                            }, 100);
+                        });
+                });
                 res.status(200).json({status:"OK", id:id})
               })
             else
@@ -161,7 +182,28 @@ const elast = new elasticsearch.Client( {
               let id = tweet._id;
               db.User.findOneAndUpdate({username:req.session.username},{ $push: {tweets: id} }, { new: true }).then((resp)=>{
                 if(req.body.childType === "reply")
-                db.Tweet.findOneAndUpdate({_id:req.body.parent},{ $push:{replies:id} }, {new: true}).then((resp)=>{});
+                db.Tweet.findOneAndUpdate({_id:req.body.parent},{ $push:{replies:id} }, {new: true}).then((resp)=>{
+                    amqp.connect('amqp://localhost', function(error0, connection) {
+                            if (error0) {
+                                throw error0;
+                            }
+                            connection.createChannel(function(error1, channel) {
+                                if (error1) {
+                                    throw error1;
+                                }
+                                var queue ='additem_queue';
+                                channel.assertQueue(queue, {
+                                    durable: true
+                                });
+                                channel.sendToQueue(queue, Buffer.from(JSON.stringify(tweet)), {
+                                    persistent: true
+                                });
+                            });
+                            setTimeout(function() { 
+                            connection.close(); 
+                            }, 100);
+                        });
+                });
                 res.status(200).json({status:"OK", id:id});
               })
           })
@@ -171,14 +213,55 @@ const elast = new elasticsearch.Client( {
         else
         if(req.body.childType === "retweet")    
               db.Tweet.create(req.body).then(tweet =>{
-                db.Tweet.findOneAndUpdate({_id:req.body.parent},{$inc:{retweeted: 1, interest: 1},},(resp)=>{res.status(200).json({status:"OK", id:tweet._id});});
+                db.Tweet.findOneAndUpdate({_id:req.body.parent},{$inc:{retweeted: 1, interest: 1},},(resp)=>{amqp.connect('amqp://localhost', function(error0, connection) {
+                    if (error0) {
+                        throw error0;
+                    }
+                    connection.createChannel(function(error1, channel) {
+                        if (error1) {
+                            throw error1;
+                        }
+                        var queue ='additem_queue';
+                        channel.assertQueue(queue, {
+                            durable: true
+                        });
+                        channel.sendToQueue(queue, Buffer.from(JSON.stringify(tweet)), {
+                            persistent: true
+                        });
+                    });
+                    setTimeout(function() { 
+                    connection.close(); 
+                    }, 100);
+                });});
+                res.status(200).json({status:"OK", id:id});
               })
             else
             db.Tweet.create(req.body).then((tweet) =>{
               let id = tweet._id;
               db.User.findOneAndUpdate({username:req.session.username},{ $push: {tweets: id} }, { new: true }).then((resp)=>{
                 if(req.body.childType === "reply")
-                db.Tweet.findOneAndUpdate({_id:req.body.parent},{$push:{replies:id}}, { new: true }).then((resp)=>{});
+                db.Tweet.findOneAndUpdate({_id:req.body.parent},{$push:{replies:id}}, { new: true }).then((resp)=>{
+                    amqp.connect('amqp://localhost', function(error0, connection) {
+                            if (error0) {
+                                throw error0;
+                            }
+                            connection.createChannel(function(error1, channel) {
+                                if (error1) {
+                                    throw error1;
+                                }
+                                var queue ='additem_queue';
+                                channel.assertQueue(queue, {
+                                    durable: true
+                                });
+                                channel.sendToQueue(queue, Buffer.from(JSON.stringify(tweet)), {
+                                    persistent: true
+                                });
+                            });
+                            setTimeout(function() { 
+                            connection.close(); 
+                            }, 100);
+                        });
+                });
                 res.status(200).json({status:"OK", id:id});
               })
           })
@@ -571,7 +654,7 @@ amqp.connect('amqp://localhost', function(error, connection) {
 
 amqp.connect('amqp://localhost', function(error, connection) {
     connection.createChannel(function(error, channel) {
-        var queue = 'signup_queue';
+        var queue = 'elast_queue';
         channel.assertQueue(queue, {
             durable: true
         });
@@ -597,7 +680,7 @@ amqp.connect('amqp://localhost', function(error, connection) {
 
 amqp.connect('amqp://localhost', function(error, connection) {
     connection.createChannel(function(error, channel) {
-        var queue = 'signup_queue';
+        var queue = 'elast_queue';
         channel.assertQueue(queue, {
             durable: true
         });
