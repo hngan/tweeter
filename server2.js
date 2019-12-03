@@ -624,6 +624,7 @@ amqp.connect('amqp://localhost', function(error, connection) {
         console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", queue);
         channel.consume(queue, function(files) {
           file = JSON.parse(files.content.toString())
+          console.log(file)
           //elasticsearch
           if(file.tweet.childType === "retweet")
                 db.Tweet.create(file.tweet).then(tweet =>{
