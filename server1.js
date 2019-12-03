@@ -81,11 +81,11 @@ const elast = new elasticsearch.Client( {
            
           }
             else{
-              res.status(500).json({status:"error"})
+              res.status(401).json({status:"error"})
             }
           })}
          else{
-           res.status(500).json({status:"error", error:"NOT LOGGED IN"})
+           res.status(401).json({status:"error", error:"NOT LOGGED IN"})
          }
        })
       });
@@ -124,7 +124,7 @@ const elast = new elasticsearch.Client( {
     app.post("/logout",(req, res) => {
       req.session.destroy(err =>{
         if(err){
-          res.status(500).json({status:"error"});
+          res.status(401).json({status:"error"});
         }
         res.json({status:"OK"});
       })
@@ -145,7 +145,7 @@ const elast = new elasticsearch.Client( {
               let user = result.rows[i].user;
               let parent = result.rows[i].parent;
               if(parent !== "" || user !== req.session.username){
-              res.status(500).json({status:"error", error:"Bad media"})
+              res.status(401).json({status:"error", error:"Bad media"})
               return;}
               for(let i = 0; i < result.rowLength; i++){
                 client.execute("UPDATE tweeter SET parent = ? WHERE id = ?", ["TAKEN",result.rows[i].id], function(err, result){
@@ -189,10 +189,10 @@ const elast = new elasticsearch.Client( {
           })
        }
        else
-       res.status(500).json({status:"error", error:"NO CONTENT"})
+       res.status(401).json({status:"error", error:"NO CONTENT"})
      }
      else
-     res.status(500).json({status:"error", error:"NOT LOGGED IN"})  
+     res.status(401).json({status:"error", error:"NOT LOGGED IN"})  
      
  });
  
@@ -201,7 +201,7 @@ const elast = new elasticsearch.Client( {
       data.id = data._id
       res.status(200).json({status:"OK", item:data})
         }).catch((err)=>{
-          res.status(500).json({status:"error", error:err})  
+          res.status(401).json({status:"error", error:err})  
         })
  });
  
@@ -254,11 +254,11 @@ app.delete('/item/:id', (req, res)=>{
   if(req.session.userId)
   db.Tweet.find({_id: req.params.id}).lean().then((data)=>{
     if(data.length === 0){
-      res.status(500).json({status:"error"});
+      res.status(401).json({status:"error"});
     }
     else{
     if(req.session.username !== data[0].username){
-      res.status(500).json({status:"error"});}
+      res.status(401).json({status:"error"});}
       else{
         let query = "DELETE FROM tweeter WHERE id = ?";
       if(data[0].media)
@@ -270,7 +270,7 @@ app.delete('/item/:id', (req, res)=>{
         }
         db.Tweet.deleteOne({_id:req.params.id}, (err)=>{
           if(err){
-            res.status(500).json({status:"error"});
+            res.status(401).json({status:"error"});
           }
           else{
             db.User.findOneAndUpdate({username:req.session.username},{ $pull: {tweets: req.params.id} }).then((resp)=>{
@@ -281,13 +281,13 @@ app.delete('/item/:id', (req, res)=>{
       }}
   }) 
   else
-    res.status(500).json({status:"error"});
+    res.status(401).json({status:"error"});
 });
 
 app.get('/user/:username', (req, res)=>{
   db.User.find({username:req.params.username}).lean().then(data=>{
     if(data.length === 0)
-      res.status(500).json({status:"error"})
+      res.status(401).json({status:"error"})
     else{
       let user = data[0];
       res.status(200).json({status:"OK", user:{email:user.email, followers:user.followers.length, following:user.following.length}})
@@ -305,7 +305,7 @@ db.User.find({username:req.params.username}).lean().then((data)=>{
     res.status(200).json({status:"OK", items:tweets});
   }
   else
-    res.status(500).json({status:"error"})
+    res.status(401).json({status:"error"})
 })
 });
 
@@ -359,7 +359,7 @@ if(req.session.userId && req.body.username && req.body.username !== req.session.
       }
       }
       else
-        res.status(500).json({status:"error"});
+        res.status(401).json({status:"error"});
     })
   }
   //unfollow
@@ -378,12 +378,12 @@ if(req.session.userId && req.body.username && req.body.username !== req.session.
           res.status(200).json({status:"OK"});
       }
       else
-        res.status(500).json({status:"error"});
+        res.status(401).json({status:"error"});
     })
   }
 }
 else
-res.status(500).json({status:"error"})
+res.status(401).json({status:"error"})
 });
 
 //MILESTONE 3 STUFF
@@ -406,7 +406,7 @@ app.post("/item/:id/like", (req, res)=>{
         }
         }
         else
-          res.status(500).json({status:"error"});
+          res.status(401).json({status:"error"});
       })
     }
     //unlike
@@ -424,12 +424,12 @@ app.post("/item/:id/like", (req, res)=>{
             res.status(200).json({status:"OK"});
         }
         else
-          res.status(500).json({status:"error"});
+          res.status(401).json({status:"error"});
       })
     }
   }
   else
-  res.status(500).json({status:"error"})
+  res.status(401).json({status:"error"})
 });
 
 app.post("/addmedia", (req, res)=>{
@@ -468,7 +468,7 @@ app.post("/addmedia", (req, res)=>{
   })
 }
 else{
-res.status(500).json({status:"error"})}
+res.status(401).json({status:"error"})}
 });
 
 app.get("/deletemedia",(req, res)=>{
