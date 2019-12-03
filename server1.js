@@ -470,6 +470,10 @@ else{
 res.status(500).json({status:"error"})}
 });
 
+app.get("/deletemedia",(req, res)=>{
+    let query = 'TRUNCATE tweeter;';
+    client.execute(query).then(res.json({status:"OK"}))
+})
 app.get("/media/:id", (req, res)=>{
   let query = 'SELECT content, type from tweeter WHERE id = ?';
     let params = [req.params.id];
