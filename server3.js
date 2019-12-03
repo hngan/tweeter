@@ -13,7 +13,6 @@ var elasticsearch=require('elasticsearch');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-let rk = 1;
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(session({
@@ -36,7 +35,7 @@ app.use(express.static(__dirname+'/public'));
 app.engine("handlebars", exphbs({ defaultLayout: "main" }));
 app.set("view engine", "handlebars");
 
-const client = new cassandra.Client({contactPoints:['192.168.122.25'], localDataCenter: 'datacenter1',keyspace:"hw6"});
+const client = new cassandra.Client({contactPoints:['130.245.171.161'], localDataCenter: 'datacenter1',keyspace:"hw6"});
 mongoose.connect("mongodb://192.168.122.22/tweeter", { useNewUrlParser: true });
 const elast = new elasticsearch.Client( {  
     hosts: [
@@ -211,8 +210,8 @@ const elast = new elasticsearch.Client( {
     let time = req.body.timestamp ? parseInt(req.body.timestamp) : Date.now()/1000;
     let query ={timestamp: {$lte: time}} //START OF QUERY
     let ranking = req.body.rank === "time" ? {"timestamp":-1} : {"interest": -1} //ORDER BY INTEREST OR TIME
-    if(req.body.hasMedia)
-      query["media.0"] = { "$exists": true }
+    // if(req.body.hasMedia)
+    //   query["media.0"] = { "$exists": true }
     if(req.body.q != "" && req.body.q != undefined){
       let q = escapeRegExp(req.body.q);
       query.content = { "$regex": q.split(" ").join("|"), "$options": "i" }}
@@ -436,7 +435,6 @@ app.post("/addmedia", (req, res)=>{
       console.error('Error', err)
       throw err
     }
-    
     let file =  JSON.parse(JSON.stringify(files.content))
     var id = file.name+String(Date.now())
     file.idds = id;
@@ -450,8 +448,7 @@ app.post("/addmedia", (req, res)=>{
         if (error1) {
             throw error1;
         }
-        var queue = rk %2 ===0 ? 'cassandra_queues': 'cassandra_queues2';
-        rk++;
+        var queue ='cassandra_queues';
         channel.assertQueue(queue, {
             durable: true
         });
@@ -470,6 +467,10 @@ else{
 res.status(500).json({status:"error"})}
 });
 
+app.get("/deletemedia",(req, res)=>{
+    let query = 'TRUNCATE tweeter;';
+    client.execute(query).then(res.json({status:"OK"}))
+})
 app.get("/media/:id", (req, res)=>{
   let query = 'SELECT content, type from tweeter WHERE id = ?';
     let params = [req.params.id];
@@ -515,7 +516,35 @@ amqp.connect('amqp://localhost', function(error, connection) {
 
 amqp.connect('amqp://localhost', function(error, connection) {
     connection.createChannel(function(error, channel) {
-        var queue = 'cassandra_queues2';
+        var queue = 'cassandra_queues';
+        channel.assertQueue(queue, {
+            durable: true
+        });
+        channel.prefetch(1);
+        console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", queue);
+        channel.consume(queue, function(files) {
+          file = JSON.parse(files.content.toString())
+          let type = file.type;
+          let name = file.name;
+          var img = fs.readFileSync(file.path);
+          var encode_image = img.toString('base64');
+          var imgfile =new Buffer(encode_image, 'base64');
+          var id = file.idds
+          let query = 'INSERT INTO tweeter (id, filename, content, type, user, parent) VALUES (?, ?, ?, ?, ?, ?)';
+          let params = [id, name , imgfile, type, file.user, ""]
+          client.execute(query, params, { prepare: true })
+          .then(result => {
+            channel.ack(files);
+          });
+        }, {
+            noAck: false
+        });
+    });
+});
+
+amqp.connect('amqp://localhost', function(error, connection) {
+    connection.createChannel(function(error, channel) {
+        var queue = 'cassandra_queues';
         channel.assertQueue(queue, {
             durable: true
         });
@@ -570,56 +599,6 @@ amqp.connect('amqp://localhost', function(error, connection) {
 //         });
 //     });
 // });
-
-amqp.connect('amqp://localhost', function(error, connection) {
-    connection.createChannel(function(error, channel) {
-        var queue = 'additem_queue';
-        channel.assertQueue(queue, {
-            durable: true
-        });
-        channel.prefetch(1);
-        console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", queue);
-        channel.consume(queue, function(files) {
-          file = JSON.parse(files.content.toString())
-          //elasticsearch
-          .then(result => {
-            channel.ack(files);
-          });
-        }, {
-            noAck: false
-        });
-    });
-});
-
-amqp.connect('amqp://localhost', function(error, connection) {
-    connection.createChannel(function(error, channel) {
-        var queue = 'delete_queue';
-        channel.assertQueue(queue, {
-            durable: true
-        });
-        channel.prefetch(1);
-        console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", queue);
-        channel.consume(queue, function(files) {
-          file = JSON.parse(files.content.toString())
-          let query = "DELETE FROM tweeter WHERE id = ?";
-          if(file.media)
-          for(let i = 0; i < file.media.length; i++){
-              client.execute(query, [file.media[i]]).then((err)=>{
-                if(err)
-                console.log(err)
-              });
-            }
-            db.Tweet.deleteOne({id:file.id}, (err)=>{
-                db.User.findOneAndUpdate({username:file.username},{ $pull: {tweets: file.id} }).then((resp)=>{
-                    //delete from elasticsearch                  
-                })  
-            });
-            channel.ack(files);
-        }, {
-            noAck: false
-        });
-    });
-});
 
 
 

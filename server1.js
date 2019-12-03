@@ -13,7 +13,6 @@ var elasticsearch=require('elasticsearch');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-let rk = 1;
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(session({
@@ -136,40 +135,6 @@ const elast = new elasticsearch.Client( {
        req.body.author = req.session.userId;
        req.body.username = req.session.username;
        if(req.body.content){
-         let query = "SELECT id, user, parent from tweeter WHERE id IN ?"
-        if(req.body.media)
-          client.execute(query, [req.body.media]).then((result)=>{
-            if(result.rowLength > 0){
-              for(let i = 0; i <  result.rowLength; i++){
-              let user = result.rows[i].user;
-              let parent = result.rows[i].parent;
-              if(parent !== "" || user !== req.session.username){
-              res.status(500).json({status:"error", error:"Bad media"})
-              return;}
-            }
-            for(let i = 0; i < result.rowLength; i++){
-              client.execute("UPDATE tweeter SET parent = ? WHERE id = ?", ["TAKEN",result.rows[i].id]).then((result)=>{
-              })
-            }
-            if(req.body.childType === "retweet")
-              db.Tweet.create(req.body).then(tweet =>{
-                let id = tweet._id;
-                db.Tweet.findOneAndUpdate({_id:req.body.parent},{$inc:{retweeted: 1, interest: 1}},(resp)=>{res.status(200).json({status:"OK", id:id});});
-              })
-            else
-            db.Tweet.create(req.body).then((tweet) =>{
-              let id = tweet._id;
-              db.User.findOneAndUpdate({username:req.session.username},{ $push: {tweets: id} }, { new: true }).then((resp)=>{
-                if(req.body.childType === "reply")
-                db.Tweet.findOneAndUpdate({_id:req.body.parent},{ $push:{replies:id} }, {new: true}).then((resp)=>{res.status(200).json({status:"OK", id:id});});
-                else
-                res.status(200).json({status:"OK", id:id});
-              })
-          })
-          }
-          });
-        //no media
-        else
         if(req.body.childType === "retweet")    
               db.Tweet.create(req.body).then(tweet =>{
                 db.Tweet.findOneAndUpdate({_id:req.body.parent},{$inc:{retweeted: 1, interest: 1},},(resp)=>{res.status(200).json({status:"OK", id:tweet._id});});
@@ -211,8 +176,8 @@ const elast = new elasticsearch.Client( {
     let time = req.body.timestamp ? parseInt(req.body.timestamp) : Date.now()/1000;
     let query ={timestamp: {$lte: time}} //START OF QUERY
     let ranking = req.body.rank === "time" ? {"timestamp":-1} : {"interest": -1} //ORDER BY INTEREST OR TIME
-    if(req.body.hasMedia)
-      query["media.0"] = { "$exists": true }
+    // if(req.body.hasMedia)
+    //   query["media.0"] = { "$exists": true }
     if(req.body.q != "" && req.body.q != undefined){
       let q = escapeRegExp(req.body.q);
       query.content = { "$regex": q.split(" ").join("|"), "$options": "i" }}
@@ -601,65 +566,6 @@ amqp.connect('amqp://localhost', function(error, connection) {
 //     });
 // });
 
-amqp.connect('amqp://localhost', function(error, connection) {
-    connection.createChannel(function(error, channel) {
-        var queue = 'delete_queue';
-        channel.assertQueue(queue, {
-            durable: true
-        });
-        channel.prefetch(1);
-        console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", queue);
-        channel.consume(queue, function(files) {
-          file = JSON.parse(files.content.toString())
-          let query = "DELETE FROM tweeter WHERE id = ?";
-          if(file.media)
-          for(let i = 0; i < file.media.length; i++){
-              client.execute(query, [file.media[i]]).then((err)=>{
-                if(err)
-                console.log(err)
-              });
-            }
-            db.Tweet.deleteOne({id:file.id}, (err)=>{
-                db.User.findOneAndUpdate({username:file.username},{ $pull: {tweets: file.id} }).then((resp)=>{
-                    //delete from elasticsearch                  
-                })  
-            });
-            channel.ack(files);
-        }, {
-            noAck: false
-        });
-    });
-});
-
-amqp.connect('amqp://localhost', function(error, connection) {
-    connection.createChannel(function(error, channel) {
-        var queue = 'delete_queue';
-        channel.assertQueue(queue, {
-            durable: true
-        });
-        channel.prefetch(1);
-        console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", queue);
-        channel.consume(queue, function(files) {
-          file = JSON.parse(files.content.toString())
-          let query = "DELETE FROM tweeter WHERE id = ?";
-          if(file.media)
-          for(let i = 0; i < file.media.length; i++){
-              client.execute(query, [file.media[i]]).then((err)=>{
-                if(err)
-                console.log(err)
-              });
-            }
-            db.Tweet.deleteOne({id:file.id}, (err)=>{
-                db.User.findOneAndUpdate({username:file.username},{ $pull: {tweets: file.id} }).then((resp)=>{
-                    //delete from elasticsearch                  
-                })  
-            });
-            channel.ack(files);
-        }, {
-            noAck: false
-        });
-    });
-});
 
 
 
