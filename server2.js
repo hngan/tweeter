@@ -399,7 +399,7 @@ if(req.session.userId && req.body.username && req.body.username !== req.session.
   }
   //unfollow
   else{
-    db.User.find({username: req.body.username}).then(data=>{
+    db.User.find({username: req.body.username}).lean().then(data=>{
       if(data.length > 0 ){
         let user = data [0];
         if(user.followers.includes(req.session.userId)){
@@ -428,7 +428,7 @@ app.post("/item/:id/like", (req, res)=>{
     if(req.body.like === false || req.body.like === "false")
       like = false
     if(like){
-      db.Tweet.find({id:req.params.id}).then(data=>{
+      db.Tweet.find({id:req.params.id}).lean().then(data=>{
         if(data.length > 0 ){
           let tweet = data [0];
           if(tweet.users.includes(req.session.userId))
@@ -446,7 +446,7 @@ app.post("/item/:id/like", (req, res)=>{
     }
     //unlike
     else{
-      db.Tweet.find({id: req.params.id}).then(data=>{
+      db.Tweet.find({id: req.params.id}).lean().then(data=>{
         if(data.length > 0 ){
           let tweet = data [0];
           if(tweet.users.includes(req.session.userId)){
@@ -607,9 +607,7 @@ amqp.connect('amqp://localhost', function(error, connection) {
                     db.Tweet.findOneAndUpdate({id:file.tweet.parent},{$push:{replies:id}}, { new: true }).then((resp)=>{});
                 })
             })
-          .then(result => {
             channel.ack(files);
-          });
         }, {
             noAck: false
         });
@@ -643,9 +641,7 @@ amqp.connect('amqp://localhost', function(error, connection) {
                     db.Tweet.findOneAndUpdate({id:file.tweet.parent},{$push:{replies:id}}, { new: true }).then((resp)=>{});
                 })
             })
-          .then(result => {
             channel.ack(files);
-          });
         }, {
             noAck: false
         });
@@ -672,10 +668,10 @@ amqp.connect('amqp://localhost', function(error, connection) {
             }
             db.Tweet.deleteOne({id:file.id}, (err)=>{
                 db.User.findOneAndUpdate({username:file.username},{ $pull: {tweets: file.id} }).then((resp)=>{
-                    //delete from elasticsearch
-                    channel.ack(files);        
+                    //delete from elasticsearch                  
                 })  
             });
+            channel.ack(files);
         }, {
             noAck: false
         });
