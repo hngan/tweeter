@@ -137,8 +137,10 @@ const elast = new elasticsearch.Client( {
        if(req.body.content){
          let query = "SELECT id, user, parent from tweeter WHERE id IN ?"
         if(req.body.media)
-          client.execute(query, [req.body.media]).then((result)=>{
-            if(result.rowLength > 0){
+          client.execute(query, [req.body.media],function(err, result){
+            if(err)
+             console.log("ADD ITEM BOTTLENECZ")
+            else if(result.rowLength > 0){
               for(let i = 0; i <  result.rowLength; i++){
               let user = result.rows[i].user;
               let parent = result.rows[i].parent;
@@ -147,7 +149,9 @@ const elast = new elasticsearch.Client( {
               return;}
             }
             for(let i = 0; i < result.rowLength; i++){
-              client.execute("UPDATE tweeter SET parent = ? WHERE id = ?", ["TAKEN",result.rows[i].id]).then((result)=>{
+              client.execute("UPDATE tweeter SET parent = ? WHERE id = ?", ["TAKEN",result.rows[i].id], function(err, result){
+                  if(err)
+                  console.log("ADD ITEM BOTTLENECZ FOR UPDATE");
               })
             }
             if(req.body.childType === "retweet")
