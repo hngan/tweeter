@@ -49,16 +49,8 @@ var transporter = nodemailer.createTransport({
       rejectUnauthorized: false
     },
   });
-
-  elast.indices.create({  
-    index: 'tweets'
-  },function(err,resp,status) {
-    if(err) {
-      console.log(err);
-    }
-    else {
-      console.log("create",resp);
-    }
+  elast.cluster.health({},function(err,resp,status) {  
+    console.log("-- Client Health --",resp);
   });
 
   app.post("/adduser", (req, res) => {
