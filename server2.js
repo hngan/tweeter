@@ -208,7 +208,6 @@ var transporter = nodemailer.createTransport({
  
  app.get('/item/:id',(req, res)=>{
     db.Tweet.findById(req.params.id).lean().then((data)=>{
-      data.id = data._id
       res.status(200).json({status:"OK", item:data})
         }).catch((err)=>{
           res.status(500).json({status:"error", error:err})  
@@ -278,7 +277,7 @@ var transporter = nodemailer.createTransport({
 app.delete('/item/:id', (req, res)=>{
   console.log("DOING A DELETE")
   if(req.session.userId)
-  db.Tweet.find({_id: req.params.id}).lean().then((data)=>{
+  db.Tweet.find({id: req.params.id}).lean().then((data)=>{
     if(data.length === 0){
       res.status(500).json({status:"error"});
     }
@@ -424,14 +423,14 @@ app.post("/item/:id/like", (req, res)=>{
     if(req.body.like === false || req.body.like === "false")
       like = false
     if(like){
-      db.Tweet.find({_id:req.params.id}).then(data=>{
+      db.Tweet.find({id:req.params.id}).then(data=>{
         if(data.length > 0 ){
           let tweet = data [0];
           if(tweet.users.includes(req.session.userId))
             res.status(200).json({status:"OK"});
           else{
           let likes = tweet.property.likes + 1;
-          db.Tweet.findOneAndUpdate({_id:req.params.id},{ 'property.likes':likes,$push: {users: req.session.userId}, $inc:{interest: 1} }).then((resp)=>{
+          db.Tweet.findOneAndUpdate({id:req.params.id},{ 'property.likes':likes,$push: {users: req.session.userId}, $inc:{interest: 1} }).then((resp)=>{
               res.status(200).json({status:"OK"});       
           })
         }
@@ -442,12 +441,12 @@ app.post("/item/:id/like", (req, res)=>{
     }
     //unlike
     else{
-      db.Tweet.find({_id: req.params.id}).then(data=>{
+      db.Tweet.find({id: req.params.id}).then(data=>{
         if(data.length > 0 ){
           let tweet = data [0];
           if(tweet.users.includes(req.session.userId)){
             let likes = tweet.property.likes - 1;
-            db.Tweet.findOneAndUpdate({_id:req.params.id},{'property.likes': likes, $pull: {users: req.session.userId},$inc:{interest: -1} }).then((resp)=>{
+            db.Tweet.findOneAndUpdate({id:req.params.id},{'property.likes': likes, $pull: {users: req.session.userId},$inc:{interest: -1} }).then((resp)=>{
                 res.status(200).json({status:"OK"});
             })
           }   
@@ -577,24 +576,6 @@ amqp.connect('amqp://localhost', function(error, connection) {
 //     });
 // });
 
-for(let i = 0; i < result.rowLength; i++){
-    client.execute("UPDATE tweeter SET parent = ? WHERE id = ?", ["TAKEN",result.rows[i].id]).then((result)=>{
-    })
-  }
-  if(req.body.childType === "retweet")
-    db.Tweet.create(req.body).then(tweet =>{
-      db.Tweet.findOneAndUpdate({_id:req.body.parent},{$inc:{retweeted: 1, interest: 1}},(resp)=>{});
-  })
-  else
-  db.Tweet.create(req.body).then((tweet) =>{
-    let id = tweet.id;
-    db.User.findOneAndUpdate({username:req.session.username},{ $push: {tweets: id} }, { new: true }).then((resp)=>{
-      if(req.body.childType === "reply")
-      db.Tweet.findOneAndUpdate({_id:req.body.parent},{ $push:{replies:id} }, {new: true}).then((resp)=>{});
-      
-    })
-})
-
 amqp.connect('amqp://localhost', function(error, connection) {
     connection.createChannel(function(error, channel) {
         var queue = 'additem_queue';
@@ -612,7 +593,7 @@ amqp.connect('amqp://localhost', function(error, connection) {
           }
           if(file.tweet.childType === "retweet")
                 db.Tweet.create(file).then(tweet =>{
-                    db.Tweet.findOneAndUpdate({_id:file.tweet.parent},{$inc:{retweeted: 1, interest: 1},},(resp)=>{});
+                    db.Tweet.findOneAndUpdate({id:file.tweet.parent},{$inc:{retweeted: 1, interest: 1},},(resp)=>{});
                 })
                 .then(result => {
                     channel.ack(files);
@@ -647,7 +628,7 @@ amqp.connect('amqp://localhost', function(error, connection) {
           //elasticsearch
           if(file.tweet.childType === "retweet")
                 db.Tweet.create(file).then(tweet =>{
-                    db.Tweet.findOneAndUpdate({_id:file.tweet.parent},{$inc:{retweeted: 1, interest: 1},},(resp)=>{});
+                    db.Tweet.findOneAndUpdate({id:file.tweet.parent},{$inc:{retweeted: 1, interest: 1},},(resp)=>{});
                 })
                 .then(result => {
                     channel.ack(files);
