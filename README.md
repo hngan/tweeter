@@ -25,3 +25,17 @@ https://tecadmin.net/install-rabbitmq-server-on-ubuntu/
 CONFIGURE POSTFIX AND MEMCACHE
 POSTFIX FILE: /etc/postfix/main.cf
 MEMCACHE FILE: /etc/memcached.conf
+
+# where to write logging data.
+systemLog:
+destination: file
+logAppend: true
+path: /var/log/mongodb/mongos.log
+
+# network interfaces
+net:
+port: 27017
+bindIp: 192.168.122.22
+
+sharding:
+configDB: configReplSet/mongo-config-1:27019,mongo-config-2:27019,

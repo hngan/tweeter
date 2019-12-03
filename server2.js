@@ -148,6 +148,10 @@ var transporter = nodemailer.createTransport({
               res.status(500).json({status:"error", error:"Bad media"})
               return;}
             }
+            for(let i = 0; i < file.result.rowLength; i++){
+                client.execute("UPDATE tweeter SET parent = ? WHERE id = ?", ["TAKEN",result.rows[i].id]).then((result)=>{
+                })
+              }
             amqp.connect('amqp://localhost', function(error0, connection) {
                 if (error0) {
                     throw error0;
@@ -160,7 +164,8 @@ var transporter = nodemailer.createTransport({
                     channel.assertQueue(queue, {
                         durable: true
                     });
-                    let file = {username:req.session.usename, tweet:req.body, result: result}
+                    req.body.username = req.session.username;
+                    let file = {tweet:req.body}
                     channel.sendToQueue(queue, Buffer.from(JSON.stringify(file)), {
                         persistent: true
                     });
@@ -186,6 +191,7 @@ var transporter = nodemailer.createTransport({
             channel.assertQueue(queue, {
                 durable: true
             });
+            req.body.username = req.session.username;
             let file = {tweet:req.body}
             channel.sendToQueue(queue, Buffer.from(JSON.stringify(file)), {
                 persistent: true
@@ -586,10 +592,6 @@ amqp.connect('amqp://localhost', function(error, connection) {
         channel.consume(queue, function(files) {
           file = JSON.parse(files.content.toString())
           //elasticsearch
-          for(let i = 0; i < file.result.rowLength; i++){
-            client.execute("UPDATE tweeter SET parent = ? WHERE id = ?", ["TAKEN",result.rows[i].id]).then((result)=>{
-            })
-          }
           if(file.tweet.childType === "retweet")
                 db.Tweet.create(file.tweet).then(tweet =>{
                     db.Tweet.findOneAndUpdate({id:file.tweet.parent},{$inc:{retweeted: 1, interest: 1},},(resp)=>{});
