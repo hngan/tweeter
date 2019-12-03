@@ -186,7 +186,7 @@ var transporter = nodemailer.createTransport({
             channel.assertQueue(queue, {
                 durable: true
             });
-            let file = {username:req.session.usename, tweet:req.body}
+            let file = {tweet:req.body}
             channel.sendToQueue(queue, Buffer.from(JSON.stringify(file)), {
                 persistent: true
             });

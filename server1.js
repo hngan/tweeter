@@ -49,9 +49,6 @@ var transporter = nodemailer.createTransport({
       rejectUnauthorized: false
     },
   });
-  elast.cluster.health({},function(err,resp,status) {  
-    console.log("-- Client Health --",resp);
-  });
 
   app.post("/adduser", (req, res) => {
     db.User.find({username:req.body.username}).lean().then((resp) => {
@@ -154,13 +151,10 @@ var transporter = nodemailer.createTransport({
               })
             }
             if(req.body.childType === "retweet")
-            db.Tweet.find({_id:req.body.parent}).then(parent =>{
-              req.body.content = parent[0].content
               db.Tweet.create(req.body).then(tweet =>{
                 let id = tweet._id;
                 db.Tweet.findOneAndUpdate({_id:req.body.parent},{$inc:{retweeted: 1, interest: 1}},(resp)=>{res.status(200).json({status:"OK", id:id});});
               })
-            })
             else
             db.Tweet.create(req.body).then((tweet) =>{
               let id = tweet._id;
@@ -175,13 +169,10 @@ var transporter = nodemailer.createTransport({
           });
         //no media
         else
-        if(req.body.childType === "retweet")
-            db.Tweet.find({_id:req.body.parent}).then(parent =>{
-              req.body.content = parent[0].content
+        if(req.body.childType === "retweet")    
               db.Tweet.create(req.body).then(tweet =>{
                 db.Tweet.findOneAndUpdate({_id:req.body.parent},{$inc:{retweeted: 1, interest: 1},},(resp)=>{res.status(200).json({status:"OK", id:tweet._id});});
               })
-            })
             else
             db.Tweet.create(req.body).then((tweet) =>{
               let id = tweet._id;
@@ -369,7 +360,7 @@ if(req.session.userId && req.body.username && req.body.username !== req.session.
   }
   //unfollow
   else{
-    db.User.find({username: req.body.username}).then(data=>{
+    db.User.find({username: req.body.username}).lean().then(data=>{
       if(data.length > 0 ){
         let user = data [0];
         if(user.followers.includes(req.session.userId)){
@@ -398,7 +389,7 @@ app.post("/item/:id/like", (req, res)=>{
     if(req.body.like === false || req.body.like === "false")
       like = false
     if(like){
-      db.Tweet.find({_id:req.params.id}).then(data=>{
+      db.Tweet.find({_id:req.params.id}).lean().then(data=>{
         if(data.length > 0 ){
           let tweet = data [0];
           if(tweet.users.includes(req.session.userId))
@@ -416,7 +407,7 @@ app.post("/item/:id/like", (req, res)=>{
     }
     //unlike
     else{
-      db.Tweet.find({_id: req.params.id}).then(data=>{
+      db.Tweet.find({_id: req.params.id}).lean().then(data=>{
         if(data.length > 0 ){
           let tweet = data [0];
           if(tweet.users.includes(req.session.userId)){
