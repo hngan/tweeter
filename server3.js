@@ -153,15 +153,15 @@ const elast = new elasticsearch.Client( {
             if(req.body.childType === "retweet")
               db.Tweet.create(req.body).then(tweet =>{
                 let id = tweet._id;
-                db.Tweet.findOneAndUpdate({_id:req.body.parent},{$inc:{retweeted: 1, interest: 1}},(resp)=>{res.status(200).json({status:"OK", id:id});});
+                db.Tweet.findOneAndUpdate({_id:req.body.parent},{$inc:{retweeted: 1, interest: 1}},(resp)=>{});
+                res.status(200).json({status:"OK", id:id})
               })
             else
             db.Tweet.create(req.body).then((tweet) =>{
               let id = tweet._id;
               db.User.findOneAndUpdate({username:req.session.username},{ $push: {tweets: id} }, { new: true }).then((resp)=>{
                 if(req.body.childType === "reply")
-                db.Tweet.findOneAndUpdate({_id:req.body.parent},{ $push:{replies:id} }, {new: true}).then((resp)=>{res.status(200).json({status:"OK", id:id});});
-                else
+                db.Tweet.findOneAndUpdate({_id:req.body.parent},{ $push:{replies:id} }, {new: true}).then((resp)=>{});
                 res.status(200).json({status:"OK", id:id});
               })
           })
@@ -178,8 +178,7 @@ const elast = new elasticsearch.Client( {
               let id = tweet._id;
               db.User.findOneAndUpdate({username:req.session.username},{ $push: {tweets: id} }, { new: true }).then((resp)=>{
                 if(req.body.childType === "reply")
-                db.Tweet.findOneAndUpdate({_id:req.body.parent},{$push:{replies:id}}, { new: true }).then((resp)=>{res.status(200).json({status:"OK", id:tweet._id});});
-                else
+                db.Tweet.findOneAndUpdate({_id:req.body.parent},{$push:{replies:id}}, { new: true }).then((resp)=>{});
                 res.status(200).json({status:"OK", id:id});
               })
           })
@@ -570,35 +569,56 @@ amqp.connect('amqp://localhost', function(error, connection) {
     });
 });
 
-// amqp.connect('amqp://localhost', function(error, connection) {
-//     connection.createChannel(function(error, channel) {
-//         var queue = 'signup_queue';
-//         channel.assertQueue(queue, {
-//             durable: true
-//         });
-//         channel.prefetch(1);
-//         console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", queue);
-//         channel.consume(queue, function(files) {
-//           let newUser =JSON.parse(files.content.toString())
-//           db.User.create(newUser).then((dbmodel)=>{})
-//             channel.ack(files);
-//             const message = {
-//               from: 'hnganMailingService356@gmail.com',
-//               to:newUser.email,
-//               subject:"hngan course project sign up!",
-//               text:`Welcome ${newUser.username} \n,
-//               Here is your validation key: <abracadabra>`
-//             }
-//             transporter.sendMail(message, function (err, info) {
-//               if(err)
-//                 console.log(err)
-//                });   
-//           })
-//         }, {
-//             noAck: false
-//         });
-//     });
-// });
+amqp.connect('amqp://localhost', function(error, connection) {
+    connection.createChannel(function(error, channel) {
+        var queue = 'signup_queue';
+        channel.assertQueue(queue, {
+            durable: true
+        });
+        channel.prefetch(1);
+        console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", queue);
+        channel.consume(queue, function(files) {
+          let tweet =JSON.parse(files.content.toString())
+          client.index({  
+            index: 'tweet',
+            id: tweet._id,
+            type: 'tweet',
+            body: tweet
+          },function(err,resp,status) {
+              console.log(resp);     
+          });
+          channel.ack(files);
+        }, {
+            noAck: false
+        });
+    });
+});
+
+
+amqp.connect('amqp://localhost', function(error, connection) {
+    connection.createChannel(function(error, channel) {
+        var queue = 'signup_queue';
+        channel.assertQueue(queue, {
+            durable: true
+        });
+        channel.prefetch(1);
+        console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", queue);
+        channel.consume(queue, function(files) {
+          let tweet =JSON.parse(files.content.toString())
+          client.index({  
+            index: 'tweet',
+            id: tweet._id,
+            type: 'tweet',
+            body: tweet
+          },function(err,resp,status) {
+              console.log(resp);     
+          });
+          channel.ack(files);
+        }, {
+            noAck: false
+        });
+    });
+});
 
 
 
