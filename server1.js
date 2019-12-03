@@ -39,7 +39,7 @@ const client = new cassandra.Client({contactPoints:['127.0.0.1'], localDataCente
 mongoose.connect("mongodb://130.245.171.156/tweeter", { useNewUrlParser: true });
 const elast = new elasticsearch.Client( {  
     hosts: [
-      '130.245.171.151:9201',
+      '130.245.171.151:9200',
     ]
   });
 var transporter = nodemailer.createTransport({
@@ -49,9 +49,7 @@ var transporter = nodemailer.createTransport({
       rejectUnauthorized: false
     },
   });
-  elast.cluster.health({},function(err,resp,status) {  
-    console.log("-- Client Health --",resp);
-  });
+
   elast.indices.create({  
     index: 'tweets'
   },function(err,resp,status) {
