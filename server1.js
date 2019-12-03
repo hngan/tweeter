@@ -147,12 +147,12 @@ const elast = new elasticsearch.Client( {
               if(parent !== "" || user !== req.session.username){
               res.status(500).json({status:"error", error:"Bad media"})
               return;}
-            }
-            for(let i = 0; i < result.rowLength; i++){
-              client.execute("UPDATE tweeter SET parent = ? WHERE id = ?", ["TAKEN",result.rows[i].id], function(err, result){
-                  if(err)
-                  console.log("ADD ITEM BOTTLENECZ FOR UPDATE");
-              })
+              for(let i = 0; i < result.rowLength; i++){
+                client.execute("UPDATE tweeter SET parent = ? WHERE id = ?", ["TAKEN",result.rows[i].id], function(err, result){
+                    if(err)
+                    console.log("ADD ITEM BOTTLENECZ FOR UPDATE");
+                })
+              }
             }
             if(req.body.childType === "retweet")
               db.Tweet.create(req.body).then(tweet =>{
