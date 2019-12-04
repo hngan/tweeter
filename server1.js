@@ -76,7 +76,7 @@ var transporter = nodemailer.createTransport({
 
       app.post("/verify", (req, res) => {
         if(req.body.key === "abracadabra")
-          db.User.updateMany({email:req.body.email}, {verified:true}).then((result)=>{
+          db.User.update({email:req.body.email}, {verified:true}).then((result)=>{
             if(result.n < 1)
             res.status(401).json({status:"error", error:"Fake user"});
             else
