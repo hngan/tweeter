@@ -209,11 +209,10 @@ var transporter = nodemailer.createTransport({
     if(req.body.username)
       query.username = req.body.username;
     //general search
-	console.log(query);
     if(req.body.following === false || req.body.following ==="false"){
       db.Tweet.find(query).limit(limit).lean().then((data)=>{
         if(data)
-          res.json({status:"OK", items:data});
+          res.json({status:"OK", items:req.body.rank === "time" ? data.sort((a, b)=>a.timestamp > b.timestamp ? -1 : 1) : data.sort((a, b)=>a.interest > b.interest ? -1 : 1)});
         });
     }
     else
