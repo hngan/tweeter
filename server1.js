@@ -76,7 +76,7 @@ var transporter = nodemailer.createTransport({
 
       app.post("/verify", (req, res) => {
         if(req.body.key === "abracadabra")
-          db.User.update({email:req.body.email}, {verified:true}, {multi:true}).then((result)=>{
+          db.User.updateMany({email:req.body.email}, {verified:true}, {multi:true}).then((result)=>{
             if(result.n < 1)
             res.status(401).json({status:"error", error:"Fake user"});
             else
@@ -137,14 +137,14 @@ var transporter = nodemailer.createTransport({
             if(req.body.childType === "retweet")
               db.Tweet.create(req.body).then(tweet =>{
                 let id = tweet._id;
-                db.Tweet.updateMany({_id:req.body.parent},{$inc:{retweeted: 1, interest: 1}},(resp)=>{res.status(200).json({status:"OK", id:id});});
+                db.Tweet.updateOne({_id:req.body.parent},{$inc:{retweeted: 1, interest: 1}},(resp)=>{res.status(200).json({status:"OK", id:id});});
               })
             else
             db.Tweet.create(req.body).then((tweet) =>{
               let id = tweet._id;
-              db.User.updateMany({username:req.session.username},{ $push: {tweets: id} }, { new: true }).then((resp)=>{
+              db.User.updateOne({_id:req.session.userId},{ $push: {tweets: id} }, { new: true }).then((resp)=>{
                 if(req.body.childType === "reply")
-                db.Tweet.updateMany({_id:req.body.parent},{ $push:{replies:id} }, {new: true}).then((resp)=>{res.status(200).json({status:"OK", id:id});});
+                db.Tweet.updateOne({_id:req.body.parent},{ $push:{replies:id} }, {new: true}).then((resp)=>{res.status(200).json({status:"OK", id:id});});
                 else
                 res.status(200).json({status:"OK", id:id});
               })
@@ -155,14 +155,14 @@ var transporter = nodemailer.createTransport({
         else
         if(req.body.childType === "retweet")    
               db.Tweet.create(req.body).then(tweet =>{
-                db.Tweet.updateMany({_id:req.body.parent},{$inc:{retweeted: 1, interest: 1},},(resp)=>{res.status(200).json({status:"OK", id:tweet._id});});
+                db.Tweet.updateOne({_id:req.body.parent},{$inc:{retweeted: 1, interest: 1},},(resp)=>{res.status(200).json({status:"OK", id:tweet._id});});
               })
             else
             db.Tweet.create(req.body).then((tweet) =>{
               let id = tweet._id;
-              db.User.updateMany({username:req.session.username},{ $push: {tweets: id} }, { new: true }).then((resp)=>{
+              db.User.updateOne({_id:req.session.userId},{ $push: {tweets: id} }, { new: true }).then((resp)=>{
                 if(req.body.childType === "reply")
-                db.Tweet.updateMany({_id:req.body.parent},{$push:{replies:id}}, { new: true }).then((resp)=>{res.status(200).json({status:"OK", id:tweet._id});});
+                db.Tweet.updateOne({_id:req.body.parent},{$push:{replies:id}}, { new: true }).then((resp)=>{res.status(200).json({status:"OK", id:tweet._id});});
                 else
                 res.status(200).json({status:"OK", id:id});
               })
@@ -423,7 +423,6 @@ app.post("/addmedia", (req, res)=>{
     var id = file.name+String(Date.now())
     file.idds = id;
     file.user = req.session.username;
-    console.log(file);
     let type = file.type;
     let name = file.name;
     var img = fs.readFileSync(file.path);
