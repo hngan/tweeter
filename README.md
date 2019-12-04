@@ -48,9 +48,8 @@ db.users.ensureIndex( { _id : "hashed" } )
 
 db.tweets.ensureIndex( { _id : "hashed" } )
 
-sh.enableSharding("exampleDB")
 
-for (var i = 1; i <= 500; i++) db.users.insert( { x : i } )
+for (var i = 1; i <= 10; i++) db.tweets.insert( { x : i } )
 db.users.getShardDistribution()
 
 
