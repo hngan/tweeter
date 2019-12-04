@@ -39,3 +39,20 @@ bindIp: 192.168.122.22
 
 sharding:
 configDB: configReplSet/mongo-config-1:27019,mongo-config-2:27019,
+
+
+
+sh.enableSharding("tweeter")
+
+db.users.ensureIndex( { _id : "hashed" } )
+
+db.tweets.ensureIndex( { _id : "hashed" } )
+
+sh.enableSharding("exampleDB")
+
+for (var i = 1; i <= 500; i++) db.users.insert( { x : i } )
+db.users.getShardDistribution()
+
+
+sh.shardCollection( "tweeter.tweets", { "_id" : "hashed" } )
+sh.shardCollection( "tweeter.users", { "_id" : "hashed" } )
