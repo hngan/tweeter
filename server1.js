@@ -42,29 +42,29 @@ const elast = new elasticsearch.Client( {
       '130.245.171.151:9200',
     ]
   });
-var transporter = nodemailer.createTransport({
-     port: 25,
-    host: 'localhost',
-    tls: {
-      rejectUnauthorized: false
-    },
-  });
+// var transporter = nodemailer.createTransport({
+//      port: 25,
+//     host: 'localhost',
+//     tls: {
+//       rejectUnauthorized: false
+//     },
+//   });
 
   app.post("/adduser", (req, res) => {
     db.User.find({$or: [{username:req.body.username}, {email:req.body.email}]}).lean().then((resp) => {
       if(resp.length === 0){
         db.User.create(req.body).then((dbmodel)=>{
-            const message = {
-                from: 'hnganMailingService356@gmail.com',
-                to: req.body.email,
-                subject:"hngan course project sign up!",
-                text:`Welcome\n,
-                Here is your validation key: <abracadabra>`
-            }
-            transporter.sendMail(message, function (err, info) {
-                if(err)
-                console.log(err)
-            });   
+            // const message = {
+            //     from: 'hnganMailingService356@gmail.com',
+            //     to: req.body.email,
+            //     subject:"hngan course project sign up!",
+            //     text:`Welcome\n,
+            //     Here is your validation key: <abracadabra>`
+            // }
+            // transporter.sendMail(message, function (err, info) {
+            //     if(err)
+            //     console.log(err)
+            // });   
             res.status(200).json({status:"OK"});
         })
     }
