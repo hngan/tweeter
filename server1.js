@@ -137,14 +137,14 @@ var transporter = nodemailer.createTransport({
             if(req.body.childType === "retweet")
               db.Tweet.create(req.body).then(tweet =>{
                 let id = tweet._id;
-                db.Tweet.findOneAndUpdate({_id:req.body.parent},{$inc:{retweeted: 1, interest: 1}},(resp)=>{res.status(200).json({status:"OK", id:id});});
+                db.Tweet.update({_id:req.body.parent},{$inc:{retweeted: 1, interest: 1}},{multi:true},(resp)=>{res.status(200).json({status:"OK", id:id});});
               })
             else
             db.Tweet.create(req.body).then((tweet) =>{
               let id = tweet._id;
-              db.User.findOneAndUpdate({username:req.session.username},{ $push: {tweets: id} }, { new: true }).then((resp)=>{
+              db.User.update({username:req.session.username},{ $push: {tweets: id} }, { new: true }, {multi:true}).then((resp)=>{
                 if(req.body.childType === "reply")
-                db.Tweet.findOneAndUpdate({_id:req.body.parent},{ $push:{replies:id} }, {new: true}).then((resp)=>{res.status(200).json({status:"OK", id:id});});
+                db.Tweet.update({_id:req.body.parent},{ $push:{replies:id} }, {new: true}, {multi:true}).then((resp)=>{res.status(200).json({status:"OK", id:id});});
                 else
                 res.status(200).json({status:"OK", id:id});
               })
@@ -155,14 +155,14 @@ var transporter = nodemailer.createTransport({
         else
         if(req.body.childType === "retweet")    
               db.Tweet.create(req.body).then(tweet =>{
-                db.Tweet.findOneAndUpdate({_id:req.body.parent},{$inc:{retweeted: 1, interest: 1},},(resp)=>{res.status(200).json({status:"OK", id:tweet._id});});
+                db.Tweet.update({_id:req.body.parent},{$inc:{retweeted: 1, interest: 1},},{multi:true},(resp)=>{res.status(200).json({status:"OK", id:tweet._id});});
               })
             else
             db.Tweet.create(req.body).then((tweet) =>{
               let id = tweet._id;
-              db.User.findOneAndUpdate({username:req.session.username},{ $push: {tweets: id} }, { new: true }).then((resp)=>{
+              db.User.update({username:req.session.username},{ $push: {tweets: id} }, { new: true },{multi:true}).then((resp)=>{
                 if(req.body.childType === "reply")
-                db.Tweet.findOneAndUpdate({_id:req.body.parent},{$push:{replies:id}}, { new: true }).then((resp)=>{res.status(200).json({status:"OK", id:tweet._id});});
+                db.Tweet.update({_id:req.body.parent},{$push:{replies:id}}, { new: true },{multi:true}).then((resp)=>{res.status(200).json({status:"OK", id:tweet._id});});
                 else
                 res.status(200).json({status:"OK", id:id});
               })
@@ -253,7 +253,7 @@ app.delete('/item/:id', (req, res)=>{
             res.status(401).json({status:"error"});
           }
           else{
-            db.User.findOneAndUpdate({username:req.session.username},{ $pull: {tweets: req.params.id} }).then((resp)=>{
+            db.User.update({username:req.session.username},{ $pull: {tweets: req.params.id} }, {multi:true}).then((resp)=>{
               res.status(200).json({status:"OK"});
             })
           }    
@@ -331,8 +331,8 @@ if(req.session.userId && req.body.username && req.body.username !== req.session.
         if(user.followers.includes(req.session.userId))
           res.status(200).json({status:"OK"});
         else{
-        db.User.findOneAndUpdate({username:req.body.username},{ $push: {followers: req.session.userId} }).then((resp)=>{
-          db.User.findOneAndUpdate({username: req.session.username},{ $push: {following: user._id} }).then((resp)=>{
+        db.User.update({username:req.body.username},{ $push: {followers: req.session.userId}, },{multi:true}).then((resp)=>{
+          db.User.update({username: req.session.username},{ $push: {following: user._id} }, {multi:true}).then((resp)=>{
             res.status(200).json({status:"OK"});
           })        
         })
@@ -348,8 +348,8 @@ if(req.session.userId && req.body.username && req.body.username !== req.session.
       if(data.length > 0 ){
         let user = data [0];
         if(user.followers.includes(req.session.userId)){
-          db.User.findOneAndUpdate({username:req.session.username},{ $pull: {following: user._id} }).then((resp)=>{
-            db.User.findOneAndUpdate({username:user.username},{$pull:{followers:req.session.userId}}).then((resp)=>{
+          db.User.update({username:req.session.username},{ $pull: {following: user._id} },{multi:true}).then((resp)=>{
+            db.User.update({username:user.username},{$pull:{followers:req.session.userId}},{multi:true}).then((resp)=>{
               res.status(200).json({status:"OK"});
             })
           })
@@ -380,7 +380,7 @@ app.post("/item/:id/like", (req, res)=>{
             res.status(200).json({status:"OK"});
           else{
           let likes = tweet.property.likes + 1;
-          db.Tweet.findOneAndUpdate({_id:req.params.id},{ 'property.likes':likes,$push: {users: req.session.userId}, $inc:{interest: 1} }).then((resp)=>{
+          db.Tweet.update({_id:req.params.id},{ 'property.likes':likes,$push: {users: req.session.userId}, $inc:{interest: 1} },{multi:true}).then((resp)=>{
               res.status(200).json({status:"OK"});       
           })
         }
@@ -396,7 +396,7 @@ app.post("/item/:id/like", (req, res)=>{
           let tweet = data [0];
           if(tweet.users.includes(req.session.userId)){
             let likes = tweet.property.likes - 1;
-            db.Tweet.findOneAndUpdate({_id:req.params.id},{'property.likes': likes, $pull: {users: req.session.userId},$inc:{interest: -1} }).then((resp)=>{
+            db.Tweet.update({_id:req.params.id},{'property.likes': likes, $pull: {users: req.session.userId},$inc:{interest: -1} },{multi:true}).then((resp)=>{
                 res.status(200).json({status:"OK"});
             })
           }   
