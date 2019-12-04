@@ -55,3 +55,37 @@ db.users.getShardDistribution()
 
 sh.shardCollection( "tweeter.tweets", { "_id" : "hashed" } )
 sh.shardCollection( "tweeter.users", { "_id" : "hashed" } )
+
+sudo nano /etc/hosts
+192.168.122.35 mongo-shard-5
+192.168.122.34 mongo-shard-2
+192.168.122.32 mongo-config-1
+192.168.122.31 mongo-shard-4
+192.168.122.30 mongo-shard-3
+192.168.122.28 mongo-shard-1
+192.168.122.26 mongo-query-router
+
+
+upstream blah{
+server 192.168.122.21:3000;
+server 192.168.122.26:3000;
+server 192.168.122.28:3000;
+server 192.168.122.30:3000;
+server 192.168.122.31:3000;
+server 192.168.122.32:3000;
+server 192.168.122.34:3000;
+server 192.168.122.35:3000;
+}
+server {
+    listen 80;
+    server_name 130.245.171.151;
+
+    location / {
+        proxy_pass http://blah;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+     }
+}

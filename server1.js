@@ -8,8 +8,6 @@ const exphbs = require('express-handlebars');
 const cassandra =  require('cassandra-driver');
 const formidable = require('formidable');
 const MemcachedStore = require("connect-memcached")(session);
-const amqp = require('amqplib/callback_api');
-var elasticsearch=require('elasticsearch');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -29,19 +27,13 @@ app.use(session({
     })
 }));
 
-amqp.connect('amqp://localhost', function(error0, connection) {});
-
 app.use(express.static(__dirname+'/public'));
 app.engine("handlebars", exphbs({ defaultLayout: "main" }));
 app.set("view engine", "handlebars");
 
 const client = new cassandra.Client({contactPoints:['130.245.171.157'], localDataCenter: 'datacenter1',keyspace:"hw6"});
 mongoose.connect("mongodb://130.245.171.156/tweeter", { useUnifiedTopology: true, useNewUrlParser: true });
-const elast = new elasticsearch.Client( {  
-    hosts: [
-      '130.245.171.151:9200',
-    ]
-  });
+
 var transporter = nodemailer.createTransport({
      port: 25,
     host: 'localhost',
