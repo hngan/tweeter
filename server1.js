@@ -36,7 +36,7 @@ app.engine("handlebars", exphbs({ defaultLayout: "main" }));
 app.set("view engine", "handlebars");
 
 const client = new cassandra.Client({contactPoints:['130.245.171.157'], localDataCenter: 'datacenter1',keyspace:"hw6"});
-mongoose.connect("mongodb://130.245.171.156/tweeter", { useNewUrlParser: true });
+mongoose.connect("mongodb://130.245.171.156/tweeter", { useUnifiedTopology: true, useNewUrlParser: true });
 const elast = new elasticsearch.Client( {  
     hosts: [
       '130.245.171.151:9200',
