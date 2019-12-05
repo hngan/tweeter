@@ -28,20 +28,6 @@ MEMCACHE FILE: /etc/memcached.conf
 
 git config --global credential.helper "cache --timeout=360000"
 
-# where to write logging data.
-systemLog:
-destination: file
-logAppend: true
-path: /var/log/mongodb/mongos.log
-
-# network interfaces
-net:
-port: 27017
-bindIp: 192.168.122.22
-
-sharding:
-configDB: configReplSet/mongo-config-1:27019,mongo-config-2:27019,
-
 
 
 sh.enableSharding("tweeter")
@@ -91,3 +77,27 @@ server {
         proxy_cache_bypass $http_upgrade;
      }
 }
+
+
+
+# where to write logging data.
+systemLog:
+  destination: file
+  logAppend: true
+  path: /var/log/mongodb/mongos.log
+
+# network interfaces
+net:
+  port: 27017
+  bindIp: 192.0.2.4
+
+sharding:
+configDB: configReplSet/mongo-config-1:27019
+
+
+
+192.168.122.21 mongo-config-1
+192.168.122.36 mongo-shard-1
+192.168.122.38 mongo-shard-2
+192.168.122.26 mongo-query-router
+192.168.122.37 mongo-shard-3
