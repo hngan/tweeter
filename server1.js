@@ -32,7 +32,7 @@ app.engine("handlebars", exphbs({ defaultLayout: "main" }));
 app.set("view engine", "handlebars");
 
 const client = new cassandra.Client({contactPoints:['130.245.171.178'], localDataCenter: 'datacenter1',keyspace:"hw6"});
-mongoose.connect("mongodb://192.168.122.26/tweeter", { useUnifiedTopology: true, useNewUrlParser: true });
+mongoose.connect("mongodb://130.245.171.179/tweeter", { useUnifiedTopology: true, useNewUrlParser: true });
 
 var transporter = nodemailer.createTransport({
      port: 25,
@@ -202,9 +202,9 @@ var transporter = nodemailer.createTransport({
       query.username = req.body.username;
     //general search
     if(req.body.following === false || req.body.following ==="false"){
-      db.Tweet.find(query).limit(limit).lean().then((data)=>{
+      db.Tweet.find(query).limit(limit).sort(ranking).lean().then((data)=>{
         if(data)
-          res.json({status:"OK", items:req.body.rank === "time" ? data.sort((a, b)=>a.timestamp > b.timestamp ? -1 : 1) : data.sort((a, b)=>a.interest > b.interest ? -1 : 1)});
+          res.json({status:"OK", items: data});
         });
     }
     else
@@ -212,15 +212,16 @@ var transporter = nodemailer.createTransport({
     db.User.find({_id:req.session.userId}).lean().then((data)=>{
       if(data[0])
       query.author = {$in: data[0].following}
-      db.Tweet.find(query).where('username').ne(req.session.username).limit(limit).lean().then((data)=>{
+      db.Tweet.find(query).where('username').ne(req.session.username).limit(limit).sort(ranking).lean().then((data)=>{
         if(data){
-          res.json({status:"OK followers", items:req.body.rank === "time" ? data.sort((a, b)=>a.timestamp > b.timestamp ? -1 : 1) : data.sort((a, b)=>a.interest > b.interest ? -1 : 1)});}
+          res.json({status:"OK followers", items:data});}
             });
     })
     });
 
 //MILESTONE 2 STUFF
 app.delete('/item/:id', (req, res)=>{
+  console.log("DOING A DELETE")
   if(req.session.userId)
   db.Tweet.find({_id: req.params.id}).lean().then((data)=>{
     if(data.length === 0){
@@ -358,7 +359,6 @@ res.status(401).json({status:"error"})
 
 //MILESTONE 3 STUFF
 app.post("/item/:id/like", (req, res)=>{
-  console.log("doing a like");
   if(req.session.userId){
     let like = true
     if(req.body.like === false || req.body.like === "false")
