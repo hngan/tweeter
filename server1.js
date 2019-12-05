@@ -221,7 +221,6 @@ var transporter = nodemailer.createTransport({
 
 //MILESTONE 2 STUFF
 app.delete('/item/:id', (req, res)=>{
-  console.log("DOING A DELETE")
   if(req.session.userId)
   db.Tweet.find({_id: req.params.id}).lean().then((data)=>{
     if(data.length === 0){
@@ -359,6 +358,7 @@ res.status(401).json({status:"error"})
 
 //MILESTONE 3 STUFF
 app.post("/item/:id/like", (req, res)=>{
+  console.log("doing a like");
   if(req.session.userId){
     let like = true
     if(req.body.like === false || req.body.like === "false")
