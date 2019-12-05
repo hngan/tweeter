@@ -202,7 +202,7 @@ var transporter = nodemailer.createTransport({
       query.username = req.body.username;
     //general search
     if(req.body.following === false || req.body.following ==="false"){
-      db.Tweet.find(query).limit(limit).lean()then((data)=>{
+      db.Tweet.find(query).limit(limit).lean().then((data)=>{
         if(data)
         //req.body.rank === "time" ? data.sort((a, b)=>a.timestamp > b.timestamp ? -1 : 1) : data.sort((a, b)=>a.interest > b.interest ? -1 : 1)
           res.json({status:"OK", items: data});
