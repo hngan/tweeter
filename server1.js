@@ -204,8 +204,7 @@ var transporter = nodemailer.createTransport({
     if(req.body.following === false || req.body.following ==="false"){
       db.Tweet.find(query).limit(limit).lean().then((data)=>{
         if(data)
-        //req.body.rank === "time" ? data.sort((a, b)=>a.timestamp > b.timestamp ? -1 : 1) : data.sort((a, b)=>a.interest > b.interest ? -1 : 1)
-          res.json({status:"OK", items: data});
+          res.json({status:"OK", items:req.body.rank === "time" ? data.sort((a, b)=>a.timestamp > b.timestamp ? -1 : 1) : data.sort((a, b)=>a.interest > b.interest ? -1 : 1)});
         });
     }
     else
@@ -215,7 +214,7 @@ var transporter = nodemailer.createTransport({
       query.author = {$in: data[0].following}
       db.Tweet.find(query).where('username').ne(req.session.username).limit(limit).lean().then((data)=>{
         if(data){
-          res.json({status:"OK followers", items:data});}
+          res.json({status:"OK followers", items:req.body.rank === "time" ? data.sort((a, b)=>a.timestamp > b.timestamp ? -1 : 1) : data.sort((a, b)=>a.interest > b.interest ? -1 : 1)});}
             });
     })
     });
