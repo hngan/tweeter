@@ -43,7 +43,6 @@ db.users.getShardDistribution()
 
 sh.shardCollection( "tweeter.tweets", { "_id" : "hashed" } )
 sh.shardCollection( "tweeter.users", { "_id" : "hashed" } )
-
 sudo nano /etc/hosts
 192.168.122.35 mongo-shard-5
 192.168.122.34 mongo-shard-2

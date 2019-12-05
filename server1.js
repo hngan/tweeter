@@ -202,9 +202,10 @@ var transporter = nodemailer.createTransport({
       query.username = req.body.username;
     //general search
     if(req.body.following === false || req.body.following ==="false"){
-      db.Tweet.find(query).limit(limit).lean().then((data)=>{
+      db.Tweet.find(query).limit(limit).lean().maxScan(500).then((data)=>{
         if(data)
-          res.json({status:"OK", items:req.body.rank === "time" ? data.sort((a, b)=>a.timestamp > b.timestamp ? -1 : 1) : data.sort((a, b)=>a.interest > b.interest ? -1 : 1)});
+        //req.body.rank === "time" ? data.sort((a, b)=>a.timestamp > b.timestamp ? -1 : 1) : data.sort((a, b)=>a.interest > b.interest ? -1 : 1)
+          res.json({status:"OK", items: data});
         });
     }
     else
@@ -212,7 +213,7 @@ var transporter = nodemailer.createTransport({
     db.User.find({_id:req.session.userId}).lean().then((data)=>{
       if(data[0])
       query.author = {$in: data[0].following}
-      db.Tweet.find(query).where('username').ne(req.session.username).limit(limit).lean().then((data)=>{
+      db.Tweet.find(query).where('username').ne(req.session.username).limit(limit).lean().maxScan(500).then((data)=>{
         if(data){
           res.json({status:"OK followers", items:data});}
             });
