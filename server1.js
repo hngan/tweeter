@@ -22,7 +22,7 @@ app.use(session({
     cookie: { secure: false,
     sameSite:true },
     store: new MemcachedStore({
-      hosts: ["192.168.122.21:11211", "192.168.122.22:11211", "192.168.122.23:11211", "192.168.122.24:11211","192.168.122.25:11211"],
+      hosts: ["192.168.122.21:11211", "192.168.122.26:11211", "192.168.122.38:11211", "192.168.122.37:11211","192.168.122.36:11211"],
       secret: "KWUPPYCAT" // Optionally use transparent encryption for memcache session data
     })
 }));
@@ -31,7 +31,7 @@ app.use(express.static(__dirname+'/public'));
 app.engine("handlebars", exphbs({ defaultLayout: "main" }));
 app.set("view engine", "handlebars");
 
-const client = new cassandra.Client({contactPoints:['130.245.171.157'], localDataCenter: 'datacenter1',keyspace:"hw6"});
+const client = new cassandra.Client({contactPoints:['130.245.171.178'], localDataCenter: 'datacenter1',keyspace:"hw6"});
 mongoose.connect("mongodb://130.245.171.156/tweeter", { useUnifiedTopology: true, useNewUrlParser: true });
 
 var transporter = nodemailer.createTransport({
@@ -364,14 +364,14 @@ app.post("/item/:id/like", (req, res)=>{
     if(req.body.like === false || req.body.like === "false")
       like = false
     if(like){
-      db.Tweet.find({_id:req.params.id}).lean().then(data=>{
+      db.Tweet.find({_id:req.params.id}).then(data=>{
         if(data.length > 0 ){
           let tweet = data [0];
           if(tweet.users.includes(req.session.userId))
             res.status(200).json({status:"OK"});
           else{
           let likes = tweet.property.likes + 1;
-          db.Tweet.updateMany({_id:req.params.id},{ 'property.likes':likes,$push: {users: req.session.userId}, $inc:{interest: 1} }).then((resp)=>{
+          db.Tweet.updateOne({_id:req.params.id},{ 'property.likes':likes,$push: {users: req.session.userId}, $inc:{interest: 1} }).then((resp)=>{
               res.status(200).json({status:"OK"});       
           })
         }
@@ -382,12 +382,12 @@ app.post("/item/:id/like", (req, res)=>{
     }
     //unlike
     else{
-      db.Tweet.find({_id: req.params.id}).lean().then(data=>{
+      db.Tweet.find({_id: req.params.id}).then(data=>{
         if(data.length > 0 ){
           let tweet = data [0];
           if(tweet.users.includes(req.session.userId)){
             let likes = tweet.property.likes - 1;
-            db.Tweet.updateMany({_id:req.params.id},{'property.likes': likes, $pull: {users: req.session.userId},$inc:{interest: -1} }).then((resp)=>{
+            db.Tweet.updateOne({_id:req.params.id},{'property.likes': likes, $pull: {users: req.session.userId},$inc:{interest: -1} }).then((resp)=>{
                 res.status(200).json({status:"OK"});
             })
           }   

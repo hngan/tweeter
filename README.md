@@ -15,7 +15,7 @@ CREATE TABLE tweeter (
   user text,
   parent text );
 
-NEED TO APT INSTALL: NODEJS NGINX NPM MONGODB CASSANDRA RABBITMQ POSTFIX MEMCACHE
+NEED TO APT INSTALL: NODEJS NGINX NPM MONGODB CASSANDRA POSTFIX MEMCACHE
 NEED TO NPM INSTALL GLOBAL: PM2
 
 https://computingforgeeks.com/how-to-install-and-configure-postfix-as-a-send-only-smtp-server-on-ubuntu-18-04-lts/
@@ -25,6 +25,8 @@ https://tecadmin.net/install-rabbitmq-server-on-ubuntu/
 CONFIGURE POSTFIX AND MEMCACHE
 POSTFIX FILE: /etc/postfix/main.cf
 MEMCACHE FILE: /etc/memcached.conf
+
+git config --global credential.helper "cache --timeout=360000"
 
 # where to write logging data.
 systemLog:
