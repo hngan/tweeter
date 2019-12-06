@@ -95,3 +95,60 @@ configDB: configReplSet/mongo-config-1:27019
 192.168.122.41 mongo-shard-3
 192.168.122.42 mongo-shard-4
 192.168.122.43 mongo-shard-5
+
+
+
+upstream blah{
+server 192.168.122.21:3000;
+server 130.245.171.177;
+server 130.245.171.179;
+}
+server {
+    listen 80;
+    server_name 130.245.171.151;
+
+    location /additem {
+        proxy_pass http://blah;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+     }
+
+     location /item {
+        proxy_pass http://blah;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+     }
+
+     location /media {
+        proxy_pass http://blah;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+     }
+
+     location /addmedia {
+        proxy_pass http://blah;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+     }
+
+    location / {
+        proxy_pass http://130.245.171.181;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+     }
+}  
