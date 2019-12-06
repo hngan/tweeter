@@ -82,6 +82,7 @@ var transporter = nodemailer.createTransport({
         var username = req.body.username;
         var password = req.body.password;
         db.User.find({username:username}).lean().then((resp) =>{
+          console.log(resp);
           if (resp.length === 0)
          res.status(401).json({status:"error", error:"INCORRECT USERNAME OR PASSWORD"});
          else{
