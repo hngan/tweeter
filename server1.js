@@ -43,7 +43,7 @@ var transporter = nodemailer.createTransport({
   });
 
   app.post("/adduser", (req, res) => {
-    db.User.find({$or: [{username:req.body.username}, {email:req.body.email}]}).lean().then((resp) => {
+    db.User.find({$or: [{username:req.body.username}, {email:req.body.email}]}, "email username").lean().then((resp) => {
       if(resp.length === 0){
         db.User.create(req.body).then((dbmodel)=>{
             const message = {
@@ -82,13 +82,11 @@ var transporter = nodemailer.createTransport({
         var username = req.body.username;
         var password = req.body.password;
         db.User.find({username:username},'username password verified').lean().then((resp) =>{
-          console.log(resp, username, password);
          if (resp.length === 0)
          res.status(401).json({status:"error", error:"INCORRECT USERNAME OR PASSWORD"});
          else{
           let user = resp[0];
           if(user.password === password && user.verified){
-            console.log("uh");
             req.session.userId = user._id;
             req.session.username = user.username
 		        res.status(200).json({status:"OK"})
@@ -211,7 +209,7 @@ var transporter = nodemailer.createTransport({
     }
     else
     //followers only search
-    db.User.find({_id:req.session.userId}).lean().then((data)=>{
+    db.User.find({_id:req.session.userId}, 'following').lean().then((data)=>{
       if(data[0])
       query.author = {$in: data[0].following}
       db.Tweet.find(query).where('username').ne(req.session.username).limit(limit).sort(ranking).lean().then((data)=>{
@@ -223,9 +221,8 @@ var transporter = nodemailer.createTransport({
 
 //MILESTONE 2 STUFF
 app.delete('/item/:id', (req, res)=>{
-  console.log("DOING A DELETE")
   if(req.session.userId)
-  db.Tweet.find({_id: req.params.id}).lean().then((data)=>{
+  db.Tweet.find({_id: req.params.id}, 'media username').lean().then((data)=>{
     if(data.length === 0){
       res.status(401).json({status:"error"});
     }
@@ -258,7 +255,7 @@ app.delete('/item/:id', (req, res)=>{
 });
 
 app.get('/user/:username', (req, res)=>{
-  db.User.find({username:req.params.username}).lean().then(data=>{
+  db.User.find({username:req.params.username}, 'email followers following').lean().then(data=>{
     if(data.length === 0)
       res.status(401).json({status:"error"})
     else{
@@ -271,7 +268,7 @@ app.get('/user/:username', (req, res)=>{
 app.get('/user/:username/posts', (req, res)=>{
   let limit = parseInt(req.query.limit) || 50
   limit = limit > 200 ? 200 : limit
-db.User.find({username:req.params.username}).lean().then((data)=>{
+db.User.find({username:req.params.username}, 'tweets').lean().then((data)=>{
   if(data.length > 0){
     let user = data[0]
     let tweets = user.tweets.slice(0, limit);
