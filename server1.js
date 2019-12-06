@@ -31,7 +31,7 @@ app.use(express.static(__dirname+'/public'));
 app.engine("handlebars", exphbs({ defaultLayout: "main" }));
 app.set("view engine", "handlebars");
 
-const client = new cassandra.Client({contactPoints:['192.168.122.26'], localDataCenter: 'datacenter1',keyspace:"hw6"});
+const client = new cassandra.Client({contactPoints:['130.245.171.179'], localDataCenter: 'datacenter1',keyspace:"hw6"});
 mongoose.connect("mongodb://192.168.122.26/tweeter", { useUnifiedTopology: true, useNewUrlParser: true });
 
 var transporter = nodemailer.createTransport({
