@@ -372,7 +372,7 @@ app.post("/item/:id/like", (req, res)=>{
     if(req.body.like === false || req.body.like === "false")
       like = false
     if(like){
-      db.Tweet.find({_id:req.params.id}, "users").then(data=>{
+      db.Tweet.find({_id:req.params.id}, "users property").then(data=>{
         if(data.length > 0 ){
           let tweet = data [0];
           if(tweet.users.includes(req.session.userId))
@@ -390,7 +390,7 @@ app.post("/item/:id/like", (req, res)=>{
     }
     //unlike
     else{
-      db.Tweet.find({_id: req.params.id}, "users").then(data=>{
+      db.Tweet.find({_id: req.params.id}, "users property").then(data=>{
         if(data.length > 0 ){
           let tweet = data [0];
           if(tweet.users.includes(req.session.userId)){
