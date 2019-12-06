@@ -55,7 +55,7 @@ var transporter = nodemailer.createTransport({
             }
             transporter.sendMail(message, function (err, info) {
                 if(err)
-                console.log("CASSANDRA ERROR",err)
+                console.log("mail err",err)
             });   
             res.status(200).json({status:"OK"});
         })
@@ -182,6 +182,7 @@ var transporter = nodemailer.createTransport({
       data.id = data._id
       res.status(200).json({status:"OK", item:data})
         }).catch((err)=>{
+          console.log(err);
           res.status(401).json({status:"error", error:err})  
         })
  });
@@ -213,6 +214,7 @@ var transporter = nodemailer.createTransport({
     if(req.body.following === false || req.body.following ==="false"){
       db.Tweet.find(query).limit(limit).sort(ranking).lean().then((data)=>{
         if(data)
+        console.log(data)
           res.json({status:"OK", items: data});
         });
     }
@@ -223,8 +225,11 @@ var transporter = nodemailer.createTransport({
       query.author = {$in: data[0].following}
       db.Tweet.find(query).where('username').ne(req.session.username).limit(limit).sort(ranking).lean().then((data)=>{
         if(data){
+          console.log(data)
           res.json({status:"OK followers", items:data});}
             });
+    }).catch(err=>{
+      res.status(401).json({status:"error"});
     })
     });
 
@@ -258,6 +263,8 @@ app.delete('/item/:id', (req, res)=>{
           }    
         });
       }}
+  }).catch(err=>{
+    res.status(401).json({status:"error"});
   }) 
   else
     res.status(401).json({status:"error"});
@@ -300,6 +307,8 @@ app.get('/user/:username/followers', (req, res)=>{
       });
       res.status(200).json({status:"OK", users:followers})
     }
+    else
+    res.status(401).json({status:"error"})
   });
 });
 
@@ -315,6 +324,8 @@ app.get('/user/:username/following', (req, res)=>{
       });
       res.status(200).json({status:"OK", users:followings})
     }
+    else
+    res.status(401).json({status:"error"})
   });
 });
 
@@ -386,6 +397,8 @@ app.post("/item/:id/like", (req, res)=>{
         }
         else
           res.status(401).json({status:"error"});
+      }).catch(err=>{
+        res.status(401).json({status:"error"});
       })
     }
     //unlike
@@ -404,6 +417,8 @@ app.post("/item/:id/like", (req, res)=>{
         }
         else
           res.status(401).json({status:"error"});
+      }).catch(err=>{
+        res.status(401).json({status:"error"});
       })
     }
   }
