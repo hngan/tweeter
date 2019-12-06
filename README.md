@@ -28,7 +28,7 @@ MEMCACHE FILE: /etc/memcached.conf
 
 git config --global credential.helper "cache --timeout=360000"
 
-
+https://www.linode.com/docs/databases/mongodb/build-database-clusters-with-mongodb/
 
 sh.enableSharding("tweeter")
 
@@ -96,7 +96,11 @@ configDB: configReplSet/mongo-config-1:27019
 
 
 192.168.122.21 mongo-config-1
-192.168.122.36 mongo-shard-1
-192.168.122.38 mongo-shard-2
+192.168.122.42 mongo-config-2
+192.168.122.39 mongo-shard-1
+192.168.122.40 mongo-shard-2
 192.168.122.26 mongo-query-router
 192.168.122.37 mongo-shard-3
+192.168.122.41 mongo-shard-3
+192.168.122.42 mongo-shard-4
+192.168.122.43 mongo-shard-5
