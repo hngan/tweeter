@@ -416,6 +416,8 @@ app.post("/addmedia", (req, res)=>{
     file.idds = id;
     file.user = req.session.username;
     let type = file.type;
+    if(type === undefined)
+      res.status(401).json({status:"error"})
     let name = file.name;
     var img = fs.readFileSync(file.path);
     var encode_image = img.toString('base64');
