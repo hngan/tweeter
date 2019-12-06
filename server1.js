@@ -31,7 +31,7 @@ app.use(express.static(__dirname+'/public'));
 app.engine("handlebars", exphbs({ defaultLayout: "main" }));
 app.set("view engine", "handlebars");
 
-const client = new cassandra.Client({contactPoints:['130.245.171.178'], localDataCenter: 'datacenter1',keyspace:"hw6"});
+const client = new cassandra.Client({contactPoints:['192.168.122.26'], localDataCenter: 'datacenter1',keyspace:"hw6"});
 mongoose.connect("mongodb://192.168.122.26/tweeter", { useUnifiedTopology: true, useNewUrlParser: true });
 
 var transporter = nodemailer.createTransport({
@@ -414,8 +414,8 @@ app.post("/addmedia", (req, res)=>{
     file.idds = id;
     file.user = req.session.username;
     let type = file.type;
-    if(type === undefined)
-      res.status(401).json({status:"error"})
+    if(file.type){
+      
     let name = file.name;
     var img = fs.readFileSync(file.path);
     var encode_image = img.toString('base64');
@@ -426,7 +426,9 @@ app.post("/addmedia", (req, res)=>{
     client.execute(query, params, { prepare: true })
     .then(result => {
         res.status(200).json({status:"OK", id: id});
-    });
+    });}
+    else
+    res.status(401).json({status:"error"})
 //     amqp.connect('amqp://localhost', function(error0, connection) {
 //     if (error0) {
 //         throw error0;
