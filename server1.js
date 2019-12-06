@@ -110,6 +110,11 @@ var transporter = nodemailer.createTransport({
     if(req.session.userId){
        req.body.author = req.session.userId;
        req.body.username = req.session.username;
+       if(req.body.childType === "retweet" || req.body.childType === "reply"){
+        if(req.body.parent=== null || req.body.parent === undefined || req.body.parent ==="")
+        res.status(401).json({status:"error", error:"NO PARENT"})
+        return
+      }
        if(req.body.content){
          let query = "SELECT id, user, parent from tweeter WHERE id IN ?"
         if(req.body.media)
@@ -123,10 +128,10 @@ var transporter = nodemailer.createTransport({
               return;}
             }
             for(let i = 0; i < result.rowLength; i++){
-              client.execute("UPDATE tweeter SET parent = ? WHERE id = ?", ["TAKEN",result.rows[i].id]).then((result)=>{
-              })
-            }
-            if(req.body.childType === "retweet")
+              
+              client.execute("UPDATE tweeter SET parent = ? WHERE id = ?", ["TAKEN",result.rows[i].id]).then((result)=>{{
+                if(i === result.rowLength -1){
+                if(req.body.childType === "retweet")
               db.Tweet.create(req.body).then(tweet =>{
                 let id = tweet._id;
                 db.Tweet.updateOne({_id:req.body.parent},{$inc:{retweeted: 1, interest: 1}},(resp)=>{
@@ -144,7 +149,11 @@ var transporter = nodemailer.createTransport({
                 else
                 res.status(200).json({status:"OK", id:id});
               })
-          })
+          })}
+        }
+              });
+
+            }
           }
           });
         //no media
