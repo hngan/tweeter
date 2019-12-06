@@ -55,7 +55,7 @@ var transporter = nodemailer.createTransport({
             }
             transporter.sendMail(message, function (err, info) {
                 if(err)
-                console.log(err)
+                console.log("CASSANDRA ERROR",err)
             });   
             res.status(200).json({status:"OK"});
         })
@@ -424,7 +424,6 @@ app.post("/addmedia", (req, res)=>{
     file.user = req.session.username;
     let type = file.type;
     if(file.type){
-      
     let name = file.name;
     var img = fs.readFileSync(file.path);
     var encode_image = img.toString('base64');
@@ -434,6 +433,7 @@ app.post("/addmedia", (req, res)=>{
     let params = [id, name , imgfile, type, file.user, ""]
     client.execute(query, params, { prepare: true })
     .then(result => {
+      console.log("added");
         res.status(200).json({status:"OK", id: id});
     });}
     else
