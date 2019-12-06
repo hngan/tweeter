@@ -129,7 +129,11 @@ var transporter = nodemailer.createTransport({
             if(req.body.childType === "retweet")
               db.Tweet.create(req.body).then(tweet =>{
                 let id = tweet._id;
-                db.Tweet.updateOne({_id:req.body.parent},{$inc:{retweeted: 1, interest: 1}},(resp)=>{res.status(200).json({status:"OK", id:id});});
+                db.Tweet.updateOne({_id:req.body.parent},{$inc:{retweeted: 1, interest: 1}},(resp)=>{
+                  db.User.updateOne({_id:req.session.userId},{ $push: {tweets: id} }, { new: true }).then((resp)=>{
+                    res.status(200).json({status:"OK", id:id});
+                  })
+                  });
               })
             else
             db.Tweet.create(req.body).then((tweet) =>{
@@ -147,7 +151,11 @@ var transporter = nodemailer.createTransport({
         else
         if(req.body.childType === "retweet")    
               db.Tweet.create(req.body).then(tweet =>{
-                db.Tweet.updateOne({_id:req.body.parent},{$inc:{retweeted: 1, interest: 1},},(resp)=>{res.status(200).json({status:"OK", id:tweet._id});});
+                db.Tweet.updateOne({_id:req.body.parent},{$inc:{retweeted: 1, interest: 1},},(resp)=>{
+                  db.User.updateOne({_id:req.session.userId},{ $push: {tweets: id} }, { new: true }).then((resp)=>{
+                    res.status(200).json({status:"OK", id:tweet._id});
+                  })
+                });
               })
             else
             db.Tweet.create(req.body).then((tweet) =>{
